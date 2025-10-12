@@ -1,13 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <title>41Bis</title>
+  <title>Login</title>
   <script src='script.js' defer></script>
-  <link rel='stylesheet' href='style.css'>
+  <link rel='stylesheet' href='style\style.css'>
 </head>
+
 <body>
-    
+  <img id="crownImage" src="/images/bgIcon.png"/>
+  <h2>Login</h1>
+  <form action="action_page.php" method="post">
+    <div class="container">
+      <input type="text" placeholder="Enter Username" name="uname" required>
+      <input type="password" placeholder="Enter Password" name="psw" required>
+      <button type="submit">Accedi</button>
+    </div>
+  </form>
 </body>
+
 </html>

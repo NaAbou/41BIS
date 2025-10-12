@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Lugrasimo&display=swap');
+
+html {
+    background: url(../images/bgcolor.png) no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+
+}
+
+body,
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* horizontal */
+    align-items: center;
+    text-align: center;
+}
+
+#crownImage {
+    align-self: flex-end;
+    padding: 20px 20px 0 0;
+    margin: 0;
+    width: 110px;
+}
+
+h2 {
+    margin: 0;
+    padding: 0;
+    color: #bb9d52;
+    font-family: "Lugrasimo", cursive;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 3.5rem;
+    padding-bottom: 80px;
+}
+
+.container input {
+    height: 5.5vh;
+    width: 28vw;
+    min-width: 250px;
+    margin-bottom: 25px;
+    border-radius: 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-color: #85703d;
+    color: gainsboro;
+    padding-left: 20px;
+    font-size: 1rem;
+}
+
+.container button {
+    height: 7vh;
+    width: 15vw;
+    min-width: 250px;
+    margin-top: 30px;
+    border-radius: 20px;
+    background-color: #3f2e14;
+    border-width: 4px;
+    border-color: #918358;
+    color: #918358;
+    font-size: 1rem;
+    font-weight: bolder;
+}
+
+.container button:hover {
+  background-color: #573f1b;
+}
+
+
+textarea:focus, input:focus{
+    outline: none;
+    border-color: #b9a772;
+}
