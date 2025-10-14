@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Lugrasimo&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=BBH+Sans+Hegarty&display=swap');
 
 html {
     background: url(../images/bgcolor.png) no-repeat center center fixed;
@@ -30,10 +30,9 @@ h2 {
     margin: 0;
     padding: 0;
     color: #bb9d52;
-    font-family: "Lugrasimo", cursive;
-    font-weight: 400;
+    font-family: "BBH Sans Hegarty", sans-serif;
     font-style: normal;
-    font-size: 3.5rem;
+    font-size: 3rem;
     padding-bottom: 80px;
 }
 
@@ -54,7 +53,7 @@ h2 {
     height: 7vh;
     width: 15vw;
     min-width: 250px;
-    margin-top: 30px;
+    margin-top: 50px;
     border-radius: 20px;
     background-color: #3f2e14;
     border-width: 4px;
