@@ -5,16 +5,18 @@
   <meta charset='UTF-8'>
   <meta name='viewport' content='width=device-width, initial-scale=1.0'>
   <title>Login</title>
+  <script type="module" src="scripts\firebase-config.js"></script>
   <script type="module" src='scripts\script.js' defer></script>
   <link rel='stylesheet' href='style\style.css'>
 </head>
 
 <body>
   <img id="crownImage" src="images\bgIcon.png"/>
-  <h2>Login</h1>
+  <h2>Login</h2>
   <div class="container">
       <input type="text" placeholder="Enter Username" name="email">
       <input type="password" placeholder="Enter Password" name="password">
+      <span id=""></span>
       <button id="loginBtn" type="submit">Accedi</button>
   </div>
 </body>
