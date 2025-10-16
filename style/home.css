@@ -1,8 +1,95 @@
 html {
-    background: url(../images/bgcolor.png) no-repeat center center fixed;
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    -o-background-size: cover;
-    background-size: cover;
+    background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+}
 
+.overlayBG {
+    position: fixed;
+    width: 20%;
+    opacity: 30%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.main {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+    height: 90%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.recordCenterDiv {
+    height: 90%;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+
+
+.bottomDiv {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+#totalMoneyDiv,
+#todayMoneyDiv {
+    width: 40%;
+    margin: 40px 20px 0px 20px;
+    height: 10vh;
+    border-radius: 25px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: rgba(183, 141, 61, 0.6) 2px solid;
+    color: green;
+    font-size: 2rem;
+    text-align: center;
+}
+
+
+.sidenav {
+    height: 100%;
+    width: 200px;
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    overflow-x: hidden;
+    padding-top: 20px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-item {
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1.2rem;
+        text-decoration: none;
+
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item.active {
+    background: rgba(212, 175, 55, 0.2);
+    border-left: 3px solid #d4af37;
 }
