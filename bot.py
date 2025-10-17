@@ -1,0 +1,55 @@
+import discord
+from discord.ext import commands
+import os
+import asyncio
+
+# Configurazione del bot
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix='!', intents=intents)
+
+@bot.event
+async def on_ready():
+    print(f'✅ Bot connesso come {bot.user.name}')
+
+    channel_id = int(os.getenv("CHANNEL_ID"))
+    channel = bot.get_channel(channel_id)
+    if not channel:
+        print("❌ Canale non trovato!")
+        return
+
+    # Data corrente in UTC
+    today = datetime.now(timezone.utc).date()
+    print(f"📅 Data corrente (UTC): {today}")
+
+    # Legge i messaggi solo di oggi
+    messages = []
+    async for message in channel.history(limit=None):
+        if message.created_at.date() == today:
+            messages.append({
+                "author": str(message.author),
+                "content": message.content,
+                "timestamp": message.created_at.isoformat()
+            })
+
+    print(f'📩 Trovati {len(messages)} messaggi del {today}')
+
+    # Salva in un file JSON
+    with open("messages.json", "w", encoding="utf-8") as f:
+        json.dump(messages, f, indent=2, ensure_ascii=False)
+
+    # Chiude il bot dopo 5 secondi (utile per GitHub Actions)
+    await asyncio.sleep(5)
+    await bot.close()
+
+# Avvia il bot
+if __name__ == '__main__':
+    token = os.getenv('DISCORD_TOKEN')
+    if not token:
+        raise ValueError('❌ DISCORD_TOKEN non trovato nelle variabili d\'ambiente!')
+    
+    try:
+        bot.run(token)
+    except Exception as e:
+        print(f'❌ Errore durante l\'esecuzione del bot: {e}')
+        exit(1)

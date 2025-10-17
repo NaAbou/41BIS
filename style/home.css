@@ -81,8 +81,7 @@ html {
     cursor: pointer;
     transition: all 0.3s;
     font-size: 1.2rem;
-        text-decoration: none;
-
+    text-decoration: none;
 }
 
 .nav-item:hover {
