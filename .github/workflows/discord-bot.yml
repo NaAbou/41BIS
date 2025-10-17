@@ -32,7 +32,7 @@ jobs:
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
-        run: python your_script_name.py
+        run: python bot.py
 
       # 5️⃣ (Opzionale) Commit dei messaggi nel repo
       - name: Commit & Push messages.json
