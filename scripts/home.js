@@ -9,11 +9,11 @@ onAuthStateChanged(auth, (user) => {
 });
 
 
-fetch('https://NaAbou.github.io/messages.json')
-  .then(res => res.json())
+fetch('https://naabou.github.io/41BIS/messages.json')
+  //.then(res => res.json())
   .then(messages => {
     messages.forEach(m => {
       console.log(m)
-      console.log(`[${m.timestamp}] ${m.author}: ${m.content}`);
+     // console.log(`[${m.timestamp}] ${m.author}: ${m.content}`);
     });
   });
