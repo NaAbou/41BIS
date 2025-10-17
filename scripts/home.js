@@ -13,6 +13,7 @@ fetch('https://NaAbou.github.io/messages.json')
   .then(res => res.json())
   .then(messages => {
     messages.forEach(m => {
+      console.log(m)
       console.log(`[${m.timestamp}] ${m.author}: ${m.content}`);
     });
   });
