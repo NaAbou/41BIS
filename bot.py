@@ -2,6 +2,9 @@ import discord
 from discord.ext import commands
 import os
 import asyncio
+import json
+from datetime import datetime, timezone
+
 
 # Configurazione del bot
 intents = discord.Intents.default()
