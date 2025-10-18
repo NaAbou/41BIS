@@ -1,33 +1,86 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 
 <head>
-  <meta charset='UTF-8'>
-  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <title>Homepage</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script type="module" src="scripts\firebase-config.js"></script>
   <script type="module" src='scripts\home.js' defer></script>
   <link rel='stylesheet' href='style\home.css'>
+  <title>41 BIS IMPERO</title>
 </head>
 
 <body>
-  <img src="images/bgIcon.png" class="overlayBG" />
-  <div class="sidenav">
-  <a class="nav-item" href="#">📊 Dashboard</a>
-  <a class="nav-item" href="#">🔫 Deposito</a>
-  <div class="history"></div>
-</div>
-  <div class="main">
-    <div class="recordCenterDiv">
-      <div id="singleRecord">
-        <div></div>
-      </div>                            
+  <div class="sidebar">
+    <div class="logo">Home</div>
+    <div class="nav-item active">📊 Dashboard</div>
+    <div class="nav-item">💰 Deposito</div>
+    <div class="nav-item">⚙️ Impostazioni</div>
+  </div>
+
+  <div class="main-content">
+    <div class="header">
+      <h1>Dashboard</h1>
+      <div class="user-info">
+        <span>Saldo:</span>
+        <span class="dirtBalance">$0.00 💴</span>
+        <span class="balance">$0.00 💵</span>
+      </div>
+
     </div>
-    <div class="bottomDiv">
-      <div id="todayMoneyDiv">10.000.000$</div>
-      <div id="totalMoneyDiv">100.000.000$</div>
+
+    <div class="hero-section">
+      <div class="hero-content">
+        <div class="hero-title">41</div>
+        <div class="hero-subtitle">BIS IMPERO</div>
+      </div>
+    </div>
+
+    <div class="transaction-container">
+      <div class="transaction-header">
+        <div class="transaction-header-left">
+          <h2>Transazioni</h2>
+          <div class="transaction-date" id="currentPeriod">Oggi</div>
+        </div>
+        <div class="transaction-controls">
+          <div class="view-mode-toggle">
+            <button class="mode-btn active" data-mode="day">Giorni</button>
+            <button class="mode-btn" data-mode="week">Settimane</button>
+          </div>
+          <button class="search-toggle" id="searchToggle">🔍</button>
+        </div>
+      </div>
+
+      <div class="search-bar hidden" id="searchBar">
+        <input type="text" id="searchInput" placeholder="Cerca per nome...">
+        <button class="clear-search" id="clearSearch">✕</button>
+      </div>
+
+      <div class="period-navigation">
+        <button class="period-btn" id="prevPeriod">◀</button>
+        <span class="period-label" id="periodLabel">Oggi - 18 Ottobre 2025</span>
+        <button class="period-btn" id="nextPeriod">▶</button>
+      </div>
+
+      <div class="transaction-list" id="transactionList">
+        <!-- Le transazioni verranno aggiunte dinamicamente -->
+      </div>
+      
+      <div class="user-info">
+        <span>Totale:</span>
+        <span class="dirtBalance">$0.00 💴</span>
+        <span class="balance">$0.00 💵</span>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature-item">
+        <div class="feature-icon"></div>
+        <div class="feature-text"></div>
+      </div>
     </div>
   </div>
+
 </body>
 
 </html>

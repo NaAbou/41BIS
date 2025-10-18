@@ -30,7 +30,6 @@ export function login() {
 }
 
 
-
 onAuthStateChanged(auth, (user) => {
     if (user) {
         window.location.href = "home.html";

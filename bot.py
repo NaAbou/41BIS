@@ -28,12 +28,11 @@ async def on_ready():
     # Legge i messaggi solo di oggi
     messages = []
     async for message in channel.history(limit=None):
-        if message.created_at.date() == today:
-            messages.append({
-                "author": str(message.author),
-                "content": message.content,
-                "timestamp": message.created_at.isoformat()
-            })
+        messages.append({
+            "author": str(message.author),
+            "content": message.content,
+            "timestamp": message.created_at.isoformat()
+        })
 
     print(f'📩 Trovati {len(messages)} messaggi del {today}')
 
