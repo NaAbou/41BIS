@@ -28,7 +28,7 @@ async def on_ready():
 
     # Legge i messaggi solo di oggi
     messages = []
-    async for message in channel.history(limit=None, before=two_weeks_ago):
+    async for message in channel.history(limit=None, after=two_weeks_ago):
         messages.append({
             "author": str(message.author),
             "content": message.content,
