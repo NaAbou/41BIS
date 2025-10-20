@@ -3,7 +3,7 @@ from discord.ext import commands
 import os
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 
 # Configurazione del bot
@@ -24,10 +24,11 @@ async def on_ready():
     # Data corrente in UTC
     today = datetime.now(timezone.utc).date()
     print(f"📅 Data corrente (UTC): {today}")
+    two_weeks_ago = datetime.now(timezone.utc) - timedelta(days=14)
 
     # Legge i messaggi solo di oggi
     messages = []
-    async for message in channel.history(limit=None):
+    async for message in channel.history(limit=None, before=two_weeks_ago):
         messages.append({
             "author": str(message.author),
             "content": message.content,

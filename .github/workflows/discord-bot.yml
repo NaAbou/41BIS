@@ -2,9 +2,10 @@ name: Discord Bot Message Collector
 
 on:
   schedule:
-    # Esegue ogni 5 minuti (cron usa UTC)
-    - cron: "0 */1 * * *"
-  workflow_dispatch: # Permette di lanciarlo manualmente
+    - cron: "0 12-17 * * *"
+    - cron: "*/20 18-23 * * *"
+    - cron: "*/20 0-2 * * *"
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:
