@@ -508,6 +508,7 @@
 
         .transaction-names {
             display: flex;
+            margin-left: 15px;
             flex-direction: column;
             gap: 5px;
         }

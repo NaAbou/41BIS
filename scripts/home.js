@@ -97,6 +97,7 @@ function updatePeriodLabel() {
 function renderTransactions() {
   const list = document.getElementById('transactionList');
   console.log(allTransactions)
+  allTransactions.sort
   let filtered = allTransactions.filter(t => {
     // Filtro per periodo
     const tDate = new Date(t.date);
@@ -110,7 +111,7 @@ function renderTransactions() {
       t.author.some(author => author.toLowerCase().includes(searchQuery));
 
     return periodMatch && searchMatch;
-  });
+  }).sort((a, b) => a.date - b.date);
 
   if (filtered.length === 0) {
     list.innerHTML = '<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">Nessuna transazione trovata</div>';
@@ -120,17 +121,10 @@ function renderTransactions() {
 
   list.innerHTML = filtered.map(t => {
     let namesHTML = '';
-    console.log(t)
-    const displayNames = t.author.slice(0, 2);
-    const remainingCount = t.author.length - 2;
 
-    namesHTML = displayNames.map(author =>
+    namesHTML = t.author.map(author =>
       `<span class="transaction-name-badge">${author}</span>`
     ).join('');
-
-    if (remainingCount > 0) {
-      namesHTML += `<span class="names-count">+${remainingCount}</span>`;
-    }
 
     return `
           <div class="transaction-item">
@@ -140,13 +134,14 @@ function renderTransactions() {
                 ${namesHTML}
               </div>
             </div>
-            <span class="transaction-amount">$${t.amount.toLocaleString()} 💴</span>
+            <span class="transaction-amount">$ ${t.amount.toLocaleString()} ${t.dirty ? "💴" : "💵"}</span>
           </div>
         `;
   }).join('');
 
-  const total = filtered.reduce((sum, t) => sum + t.amount, 0);
-  updateTotals(total, 0);
+  const total = filtered.filter(t => t.dirty === true).reduce((sum, t) => sum + t.amount, 0);
+  const cleanTotal = filtered.filter(t => t.dirty === false).reduce((sum, t) => sum + t.amount, 0);
+  updateTotals(total, cleanTotal);
 }
 
 function updateTotals(dirtMoney, cleanMoney) {
@@ -165,8 +160,9 @@ renderTransactions();
 
 
 function estraiValore(author, text, time) {
-  const regex = /([+-])?\s*(\d+(?:[.,]\d+)?)(?:\s*([kKmM]))?/;
+  const regex = /([+-])?\s*(\d+(?:[.,]\d+)?)(?:\s*([kKmM]))?/g;
   const match = text.replace('.', '').match(regex);
+  console.log("text: " + text + " match: " + match)
 
   const authorMatch = [...text.matchAll(/@[^\p{L}\p{N}]*([\p{L}\p{N}._-]+)/gu)].map(m => m[1]);
 
@@ -175,28 +171,35 @@ function estraiValore(author, text, time) {
     return;
   }
 
-  let [, operator, num, suffix] = match;
-  let value = parseFloat(num.replace(',', '.'));
+  match.forEach((element) => {
+    const str = String(element)
+    let value = 0;
+    value = parseFloat(str.replace(',', '.').match(/\d+(\.\d+)?/));
+    console.log("element: " + element + " value: " + value)
 
-  if (suffix) {
-    switch (suffix.toLowerCase()) {
-      case 'k': value *= 1_000; break;
-      case 'm': value *= 1_000_000; break;
-      case 'b': value *= 1_000_000_000; break;
+    if (str.toLowerCase().includes("k")) {
+      value *= 1_000
+    } else if (str.toLowerCase().includes("m")) {
+      value *= 1_000_000
     }
-  }
 
-  if (value <= 2000){
-    console.log("element refused due to suffix: " + text)
-    return;
-  } 
+    if (value <= 2000) {
+      console.log("element refused due to suffix: " + str)
+      return;
+    }
 
-  if(operator) value = parseFloat(operator + value);
+    if (str.includes("-")) value = -1 * value;
 
-
-
-  const formattedTime = new Date(time)
-  allTransactions.push({ time: `${formattedTime.getHours()}:${formattedTime.getMinutes()}`, author: [author, ...authorMatch], amount: value, date: formattedTime })
+    console.log("completed with value: " + value + "made by: " + [author, ...authorMatch])
+    const formattedTime = new Date(time)
+    allTransactions.push({
+      time: `${formattedTime.getHours().toString().padStart(2, '0')}:${formattedTime.getMinutes().toString().padStart(2, '0')}`,
+      author: [author, ...authorMatch],
+      amount: value,
+      dirty: !(text.toLowerCase().includes("puliti") || text.toLowerCase().includes("pulito")),
+      date: formattedTime
+    })
+  })
 }
 
 function getStartOfWeek(date) {
@@ -211,11 +214,16 @@ function getEndOfWeek(date) {
 }
 
 
-function updateTotal(){
+function updateTotal() {
   let total = 0;
   let dirtTotal = 0;
-  allTransactions.forEach( (i) => {
-    dirtTotal += i.amount
+  allTransactions.forEach((i) => {
+    if (!i.dirty) {
+      total += i.amount
+    } else {
+      dirtTotal += i.amount
+    }
   })
-  document.querySelectorAll('.dirtTotal')[0].textContent = "$" + dirtTotal.toLocaleString() + "💴";
+  document.querySelectorAll('.total')[0].textContent = "$" + total.toLocaleString() + " 💵";
+  document.querySelectorAll('.dirtTotal')[0].textContent = "$" + dirtTotal.toLocaleString() + " 💴";
 }
