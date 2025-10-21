@@ -2,6 +2,11 @@ import { signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gsta
 import { auth } from "./firebase-config.js";
 
 
+const allTransactions = [
+];
+
+
+
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = "index.html";
@@ -12,21 +17,11 @@ fetch('https://naabou.github.io/41BIS/messages.json')
   .then(res => res.json())
   .then(messages => {
     messages.forEach(m => {
-      console.log(m.content)
-      const value = estraiValore(m.author, m.content, m.timestamp)
-      console.log("the value is: " + value)
-
+      estraiValore(m.author, m.content, m.timestamp)
     });
+    updatePeriodLabel();
+    renderTransactions();
   });
-
-const allTransactions = [
-  {
-    time: '14:32',
-    names: ['Marco Rossi'],
-    amount: 50000,
-    date: new Date('2025-10-18'),
-  },
-];
 
 let currentMode = 'day';
 let searchDate = new Date();
@@ -100,16 +95,18 @@ function updatePeriodLabel() {
 
 function renderTransactions() {
   const list = document.getElementById('transactionList');
-
+  console.log(allTransactions)
   let filtered = allTransactions.filter(t => {
     // Filtro per periodo
+    const tDate = new Date(t.date);
+
     const periodMatch = currentMode === 'day'
-      ? Date(t.date) === searchDate
-      : Math.floor((t.day - 1) / 7) === currentWeek - 42;
+      ? tDate.setHours(0, 0, 0, 0) === searchDate.setHours(0, 0, 0, 0)
+      : tDate >= getStartOfWeek(searchDate) && tDate <= getEndOfWeek(searchDate);
 
     // Filtro per ricerca
     const searchMatch = searchQuery === '' ||
-      t.names.some(name => name.toLowerCase().includes(searchQuery));
+      t.author.some(author => author.toLowerCase().includes(searchQuery));
 
     return periodMatch && searchMatch;
   });
@@ -122,11 +119,12 @@ function renderTransactions() {
 
   list.innerHTML = filtered.map(t => {
     let namesHTML = '';
-    const displayNames = t.names.slice(0, 2);
-    const remainingCount = t.names.length - 2;
+    console.log(t)
+    const displayNames = t.author.slice(0, 2);
+    const remainingCount = t.author.length - 2;
 
-    namesHTML = displayNames.map(name =>
-      `<span class="transaction-name-badge">${name}</span>`
+    namesHTML = displayNames.map(author =>
+      `<span class="transaction-name-badge">${author}</span>`
     ).join('');
 
     if (remainingCount > 0) {
@@ -166,16 +164,19 @@ renderTransactions();
 
 
 function estraiValore(author, text, time) {
-  const regex = /([+-])\s*(\d+(?:[.,]\d+)?)\s*([kKmMbB])/;
-  const match = text.match(regex);
+  const regex = /([+-])?\s*(\d+(?:[.,]\d+)?)(?:\s*([kKmM]))?/;
+  const match = text.replace('.', '').match(regex);
 
-  console.log(match)
-  if (!match) return null;
+  const authorMatch = [...text.matchAll(/@[^\p{L}\p{N}]*([\p{L}\p{N}._-]+)/gu)].map(m => m[1]);
+
+  if (!match) {
+    console.log("element refused due to match: " + text + "author: " + author + "time: " + time)
+    return;
+  }
 
   let [, operator, num, suffix] = match;
   let value = parseFloat(num.replace(',', '.'));
 
-  console.log("sono arrivato qua")
   if (suffix) {
     switch (suffix.toLowerCase()) {
       case 'k': value *= 1_000; break;
@@ -184,35 +185,26 @@ function estraiValore(author, text, time) {
     }
   }
 
-  if (value <= 999) return null;
+  if (value <= 2000){
+    console.log("element refused due to suffix: " + text)
+    return;
+  } 
 
+  if(operator) value = parseFloat(operator + value);
 
-  return {
-    date: time,
-    names: [author, ],
-    amount: value,
-  }
+  
 
-
-  console.log("sono arrivato qua2")
-  // Se la parola è "soldi", prendi quella dopo
-  /*if (word.toLowerCase() === 'soldi' && nextWord) {
-    word = nextWord;
-  }*/
-
-
-  console.log("sono arrivato qua3")
-  return [value, word]
-
+  const formattedTime = new Date(time)
+  allTransactions.push({ time: `${formattedTime.getHours()}:${formattedTime.getMinutes()}`, author: [author, ...authorMatch], amount: value, date: formattedTime })
 }
 
 function getStartOfWeek(date) {
   const day = date.getDay(),
     diff = date.getDate() - day + (day == 0 ? -6 : 1);
-  return new Date(date.setDate(diff));
+  return new Date(new Date(date.setDate(diff)).setHours(0, 0, 0, 0));
 }
 
 function getEndOfWeek(date) {
   var lastday = date.getDate() - (date.getDay() - 1) + 6;
-  return new Date(date.setDate(lastday));
+  return new Date((new Date(date.setDate(lastday))).setHours(23, 59, 59, 59));
 }
