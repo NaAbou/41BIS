@@ -19,6 +19,7 @@ fetch('https://naabou.github.io/41BIS/messages.json')
     messages.forEach(m => {
       estraiValore(m.author, m.content, m.timestamp)
     });
+    updateTotal();
     updatePeriodLabel();
     renderTransactions();
   });
@@ -192,7 +193,7 @@ function estraiValore(author, text, time) {
 
   if(operator) value = parseFloat(operator + value);
 
-  
+
 
   const formattedTime = new Date(time)
   allTransactions.push({ time: `${formattedTime.getHours()}:${formattedTime.getMinutes()}`, author: [author, ...authorMatch], amount: value, date: formattedTime })
@@ -207,4 +208,14 @@ function getStartOfWeek(date) {
 function getEndOfWeek(date) {
   var lastday = date.getDate() - (date.getDay() - 1) + 6;
   return new Date((new Date(date.setDate(lastday))).setHours(23, 59, 59, 59));
+}
+
+
+function updateTotal(){
+  let total = 0;
+  let dirtTotal = 0;
+  allTransactions.forEach( (i) => {
+    dirtTotal += i.amount
+  })
+  document.querySelectorAll('.dirtTotal')[0].textContent = "$" + dirtTotal.toLocaleString() + "💴";
 }
