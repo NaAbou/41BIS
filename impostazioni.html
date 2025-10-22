@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="module" src="scripts\firebase-config.js"></script>
+  <script type="module" src='scripts\impostazioni.js' defer></script>
+  <link rel='stylesheet' href='style\impostazioni.css'>
+  <title>41 BIS IMPERO</title>
+</head>
+
+<body>
+  <div class="sidebar">
+    <div class="logo">Home</div>
+    <div class="nav-item" id="dashboardNav">📊 Dashboard</div>
+    <div class="nav-item">💰 Deposito</div>
+    <div class="nav-item active">⚙️ Impostazioni</div>
+  </div>
+
+  <div class="main-content">
+    <div class="header">
+      <h1>Dashboard</h1>
+      <div class="user-info">
+        <span>Saldo:</span>
+        <span class="dirtTotal">$0.00 💴</span>
+        <span class="total">$0.00 💵</span>
+      </div>
+
+    </div>
+
+    <div class="hero-section">
+      <div class="hero-content">
+        <div class="hero-title">41</div>
+        <div class="hero-subtitle">BIS IMPERO</div>
+      </div>
+    </div>
+
+    <div class="transaction-container">
+      <div class="transaction-header">
+        <div class="transaction-header-left">
+          <h2>Transazioni</h2>
+        </div>
+      </div>
+
+      <div class="period-navigation">
+        <button class="period-btn" id="prevPeriod">◀</button>
+        <span class="period-label" id="periodLabel">Oggi - 18 Ottobre 2025</span>
+        <button class="period-btn" id="nextPeriod">▶</button>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+
+</html>

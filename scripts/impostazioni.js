@@ -1,15 +1,13 @@
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js'
-import { collection, getDocs, getDoc, doc, writeBatch  } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js'
 import { auth } from "./firebase-config.js";
-import { db } from "./firebase-config.js";
 
 
 const allTransactions = [
 ];
 
 
-document.getElementById('settingsNav').addEventListener('click', () => {
-  document.location.href = "impostazioni.html";
+document.getElementById('dashboardNav').addEventListener('click', () => {
+  document.location.href = "home.html";
   searchQuery = '';
   renderTransactions();
 });
@@ -26,7 +24,6 @@ fetch('https://naabou.github.io/41BIS/messages.json')
     messages.forEach(m => {
       estraiValore(m.author, m.content, m.timestamp)
     });
-    storeTransactionsByDate(allTransactions)
     updateTotal();
     updatePeriodLabel();
     renderTransactions();
@@ -234,67 +231,4 @@ function updateTotal() {
   })
   document.querySelectorAll('.total')[0].textContent = "$" + total.toLocaleString() + " 💵";
   document.querySelectorAll('.dirtTotal')[0].textContent = "$" + dirtTotal.toLocaleString() + " 💴";
-}
-
-
-
-
-async function storeTransactionsByDate(transactions) {
-  if (!transactions.length) return;
-
-  // Raggruppa transazioni per data per minimizzare le operazioni
-  const byDate = new Map();
-  
-  for (const t of transactions) {
-    const dateKey = t.date.toISOString().split('T')[0];
-    if (!byDate.has(dateKey)) {
-      byDate.set(dateKey, []);
-    }
-    byDate.get(dateKey).push(t);
-  }
-
-  // Batch write (max 500 operazioni per batch)
-  const batch = writeBatch(db);
-  let operationCount = 0;
-  const batches = [];
-
-  for (const [dateKey, newTransactions] of byDate.entries()) {
-    const dateDocRef = doc(db, "transactions", dateKey);
-    
-    // Leggi documento esistente
-    const dateDocSnap = await getDoc(dateDocRef);
-    let existing = dateDocSnap.exists() ? (dateDocSnap.data().items || []) : [];
-
-    // Crea Set per duplicati più veloce
-    const existingSet = new Set(
-      existing.map(e => `${e.time}|${e.amount}|${JSON.stringify(e.author)}`)
-    );
-
-    // Filtra duplicati
-    const toAdd = newTransactions.filter(t => {
-      const key = `${t.time}|${t.amount}|${JSON.stringify(t.author)}`;
-      return !existingSet.has(key);
-    });
-
-    if (toAdd.length > 0) {
-      const updated = [...existing, ...toAdd];
-      batch.set(dateDocRef, { items: updated }, { merge: true });
-      operationCount++;
-
-      // Firestore batch limit è 500 operazioni
-      if (operationCount >= 500) {
-        batches.push(batch.commit());
-        batch = writeBatch(db);
-        operationCount = 0;
-      }
-    }
-  }
-
-  // Commit ultimo batch se ci sono operazioni
-  if (operationCount > 0) {
-    batches.push(batch.commit());
-  }
-
-  // Attendi tutti i batch
-  await Promise.all(batches);
 }
