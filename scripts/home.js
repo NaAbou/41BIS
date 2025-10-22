@@ -1,5 +1,5 @@
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js'
-import { doc, updateDoc, arrayUnion, setDoc, collection, getDocs } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
+import { doc, updateDoc, arrayUnion, setDoc, collection, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
 import { auth } from "./firebase-config.js";
 import { db } from "./firebase-config.js";
 
@@ -10,11 +10,6 @@ let allTransactions = [
 
 document.getElementById('settingsNav').addEventListener('click', () => {
   document.location.href = "impostazioni.html";
-  searchQuery = '';
-  renderTransactions();
-});
-
-document.getElementById('skipButton').addEventListener('click', () => {
   searchQuery = '';
   renderTransactions();
 });
@@ -31,9 +26,8 @@ fetch('https://naabou.github.io/41BIS/messages.json')
     messages.forEach(m => {
       estraiValore(m.author, m.content, m.timestamp)
     });
-    storeTransactionsByDate(allTransactions).then(()=>{
+    storeTransactionsByDate(allTransactions).then(() => {
       loadTransactionsFromFirestore().then(() => {
-        console.log(allTransactions)
         updateTotal();
         updatePeriodLabel();
         renderTransactions();
@@ -127,7 +121,7 @@ function renderTransactions() {
     const searchMatch = searchQuery === '' ||
       t.author.some(author => author.toLowerCase().includes(searchQuery));
 
-    return periodMatch && searchMatch;
+    return periodMatch && searchMatch && !t.skip;
   }).sort((a, b) => a.date - b.date);
 
   if (filtered.length === 0) {
@@ -156,6 +150,12 @@ function renderTransactions() {
           </div>
         `;
   }).join('');
+
+  document.getElementById('skipButton').addEventListener('click', () => {
+    t.skip = true;
+
+    renderTransactions();
+  });
 
   const total = filtered.filter(t => t.dirty === true).reduce((sum, t) => sum + t.amount, 0);
   const cleanTotal = filtered.filter(t => t.dirty === false).reduce((sum, t) => sum + t.amount, 0);
@@ -254,17 +254,31 @@ async function storeTransactionsByDate(transactions) {
 
   const byDate = new Map();
 
-  // Raggruppa le transazioni per data
+  const transactionsRef = collection(db, 'transactions');
+  const snapshot = await getDocs(transactionsRef);
+
+  let latestDate = new Date("2002-12-11");
+
+  snapshot.forEach((doc) => {
+    const dateKey = new Date(doc.id); 
+    if(latestDate < dateKey)
+      latestDate = dateKey;
+  });
+ latestDate.setHours(0,0,0)
+
   for (const t of transactions) {
-    const dateKey = t.date.toISOString().split('T')[0]; // "YYYY-MM-DD"
-    if (!byDate.has(dateKey)) byDate.set(dateKey, []);
-    byDate.get(dateKey).push({
-      ...t,
-      skip: false
-    });
+    if (latestDate < t.date) {
+      const dateKey = t.date.toISOString().split('T')[0];
+      if (!byDate.has(dateKey)) byDate.set(dateKey, []);
+      byDate.get(dateKey).push(
+      {
+        id: t.time + "-" + t.author +  "-" + t.amount,
+        ...t,
+        skip: false
+      });
+    }
   }
 
-  // Processa ogni data
   for (const [dateKey, transForDate] of byDate.entries()) {
     const dateDocRef = doc(db, 'transactions', dateKey);
 
@@ -286,20 +300,16 @@ async function storeTransactionsByDate(transactions) {
 
 
 async function loadTransactionsFromFirestore() {
-  allTransactions = []; // Reset array
-  
+  allTransactions = []; 
+
   try {
-    // Ottieni tutti i documenti dalla collection "transactions"
     const transactionsRef = collection(db, 'transactions');
     const snapshot = await getDocs(transactionsRef);
-        
-    // Itera su ogni documento (ogni documento è una data)
+
     snapshot.forEach((doc) => {
       const data = doc.data();
-      const dateKey = doc.id; // es: "2025-09-22"
-      
+
       if (data.items && Array.isArray(data.items)) {
-        // Converti ogni transazione da formato Firestore a formato app
         data.items.forEach(item => {
           allTransactions.push({
             time: item.time,
@@ -307,12 +317,11 @@ async function loadTransactionsFromFirestore() {
             amount: item.amount,
             dirty: item.dirty,
             skip: item.skip,
-            date: new Date(item.date) // Converti stringa ISO in Date
+            date: item.date.toDate()
           });
         });
       }
     });
-    
     console.log(`✅ Loaded ${allTransactions.length} transactions from Firestore`);
   } catch (error) {
     console.error('❌ Error loading from Firestore:', error);
