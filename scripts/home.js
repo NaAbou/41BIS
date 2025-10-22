@@ -1,15 +1,20 @@
 import { signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js'
-import { collection, getDocs, getDoc, doc, writeBatch  } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js'
+import { doc, updateDoc, arrayUnion, setDoc, collection, getDocs } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
 import { auth } from "./firebase-config.js";
 import { db } from "./firebase-config.js";
 
 
-const allTransactions = [
+let allTransactions = [
 ];
 
 
 document.getElementById('settingsNav').addEventListener('click', () => {
   document.location.href = "impostazioni.html";
+  searchQuery = '';
+  renderTransactions();
+});
+
+document.getElementById('skipButton').addEventListener('click', () => {
   searchQuery = '';
   renderTransactions();
 });
@@ -26,10 +31,15 @@ fetch('https://naabou.github.io/41BIS/messages.json')
     messages.forEach(m => {
       estraiValore(m.author, m.content, m.timestamp)
     });
-    storeTransactionsByDate(allTransactions)
-    updateTotal();
-    updatePeriodLabel();
-    renderTransactions();
+    storeTransactionsByDate(allTransactions).then(()=>{
+      loadTransactionsFromFirestore().then(() => {
+        console.log(allTransactions)
+        updateTotal();
+        updatePeriodLabel();
+        renderTransactions();
+      })
+      updatePeriodLabel();
+    })
   });
 
 let currentMode = 'day';
@@ -105,7 +115,6 @@ function updatePeriodLabel() {
 function renderTransactions() {
   const list = document.getElementById('transactionList');
   console.log(allTransactions)
-  allTransactions.sort
   let filtered = allTransactions.filter(t => {
     // Filtro per periodo
     const tDate = new Date(t.date);
@@ -143,6 +152,7 @@ function renderTransactions() {
               </div>
             </div>
             <span class="transaction-amount">$ ${t.amount.toLocaleString()} ${t.dirty ? "💴" : "💵"}</span>
+            <button class="transaction-skip" id="skipButton">✕</button>
           </div>
         `;
   }).join('');
@@ -242,59 +252,70 @@ function updateTotal() {
 async function storeTransactionsByDate(transactions) {
   if (!transactions.length) return;
 
-  // Raggruppa transazioni per data per minimizzare le operazioni
   const byDate = new Map();
-  
+
+  // Raggruppa le transazioni per data
   for (const t of transactions) {
-    const dateKey = t.date.toISOString().split('T')[0];
-    if (!byDate.has(dateKey)) {
-      byDate.set(dateKey, []);
-    }
-    byDate.get(dateKey).push(t);
-  }
-
-  // Batch write (max 500 operazioni per batch)
-  const batch = writeBatch(db);
-  let operationCount = 0;
-  const batches = [];
-
-  for (const [dateKey, newTransactions] of byDate.entries()) {
-    const dateDocRef = doc(db, "transactions", dateKey);
-    
-    // Leggi documento esistente
-    const dateDocSnap = await getDoc(dateDocRef);
-    let existing = dateDocSnap.exists() ? (dateDocSnap.data().items || []) : [];
-
-    // Crea Set per duplicati più veloce
-    const existingSet = new Set(
-      existing.map(e => `${e.time}|${e.amount}|${JSON.stringify(e.author)}`)
-    );
-
-    // Filtra duplicati
-    const toAdd = newTransactions.filter(t => {
-      const key = `${t.time}|${t.amount}|${JSON.stringify(t.author)}`;
-      return !existingSet.has(key);
+    const dateKey = t.date.toISOString().split('T')[0]; // "YYYY-MM-DD"
+    if (!byDate.has(dateKey)) byDate.set(dateKey, []);
+    byDate.get(dateKey).push({
+      ...t,
+      skip: false
     });
+  }
 
-    if (toAdd.length > 0) {
-      const updated = [...existing, ...toAdd];
-      batch.set(dateDocRef, { items: updated }, { merge: true });
-      operationCount++;
+  // Processa ogni data
+  for (const [dateKey, transForDate] of byDate.entries()) {
+    const dateDocRef = doc(db, 'transactions', dateKey);
 
-      // Firestore batch limit è 500 operazioni
-      if (operationCount >= 500) {
-        batches.push(batch.commit());
-        batch = writeBatch(db);
-        operationCount = 0;
-      }
+    try {
+      // Prova a creare il documento se non esiste
+      await setDoc(dateDocRef, { items: [] }, { merge: true });
+
+      // Aggiorna in modo atomico aggiungendo nuove transazioni
+      await updateDoc(dateDocRef, {
+        items: arrayUnion(...transForDate)
+      });
+
+      console.log(`✅ Stored ${transForDate.length} transactions for ${dateKey}`);
+    } catch (error) {
+      console.error(`❌ Error storing transactions for ${dateKey}:`, error);
     }
   }
+}
 
-  // Commit ultimo batch se ci sono operazioni
-  if (operationCount > 0) {
-    batches.push(batch.commit());
+
+async function loadTransactionsFromFirestore() {
+  allTransactions = []; // Reset array
+  
+  try {
+    // Ottieni tutti i documenti dalla collection "transactions"
+    const transactionsRef = collection(db, 'transactions');
+    const snapshot = await getDocs(transactionsRef);
+        
+    // Itera su ogni documento (ogni documento è una data)
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const dateKey = doc.id; // es: "2025-09-22"
+      
+      if (data.items && Array.isArray(data.items)) {
+        // Converti ogni transazione da formato Firestore a formato app
+        data.items.forEach(item => {
+          allTransactions.push({
+            time: item.time,
+            author: item.author,
+            amount: item.amount,
+            dirty: item.dirty,
+            skip: item.skip,
+            date: new Date(item.date) // Converti stringa ISO in Date
+          });
+        });
+      }
+    });
+    
+    console.log(`✅ Loaded ${allTransactions.length} transactions from Firestore`);
+  } catch (error) {
+    console.error('❌ Error loading from Firestore:', error);
+    throw error;
   }
-
-  // Attendi tutti i batch
-  await Promise.all(batches);
 }
