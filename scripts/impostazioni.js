@@ -29,75 +29,8 @@ fetch('https://naabou.github.io/41BIS/messages.json')
     renderTransactions();
   });
 
-let currentMode = 'day';
 let searchDate = new Date();
-let searchQuery = '';
 
-// Toggle ricerca
-document.getElementById('searchToggle').addEventListener('click', () => {
-  const searchBar = document.getElementById('searchBar');
-  searchBar.classList.toggle('hidden');
-  if (!searchBar.classList.contains('hidden')) {
-    document.getElementById('searchInput').focus();
-  }
-});
-
-// Ricerca
-document.getElementById('searchInput').addEventListener('input', (e) => {
-  searchQuery = e.target.value.toLowerCase();
-  renderTransactions();
-});
-
-// Pulisci ricerca
-document.getElementById('clearSearch').addEventListener('click', () => {
-  document.getElementById('searchInput').value = '';
-  searchQuery = '';
-  renderTransactions();
-});
-
-// Toggle modalità
-document.querySelectorAll('.mode-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentMode = btn.dataset.mode;
-    searchDate = new Date();
-    updatePeriodLabel();
-    renderTransactions();
-  });
-});
-
-// Navigazione periodi
-document.getElementById('prevPeriod').addEventListener('click', () => {
-  if (currentMode === 'day') {
-    searchDate.setDate(searchDate.getDate() - 1);
-  } else {
-    searchDate.setDate(searchDate.getDate() - 7)
-  }
-  updatePeriodLabel();
-  renderTransactions();
-});
-
-document.getElementById('nextPeriod').addEventListener('click', () => {
-  if (currentMode === 'day') {
-    searchDate.setDate(searchDate.getDate() + 1);
-  } else {
-    searchDate.setDate(searchDate.getDate() + 7);
-  }
-  updatePeriodLabel();
-  renderTransactions();
-});
-
-function updatePeriodLabel() {
-  const label = document.getElementById('periodLabel');
-  if (currentMode === 'day') {
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    label.textContent = searchDate.toLocaleDateString('it-IT', options);
-  } else {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    label.textContent = `${getStartOfWeek(searchDate).toLocaleDateString('it-IT', options)} - ${getEndOfWeek(searchDate).toLocaleDateString('it-IT', options)}`;
-  }
-}
 
 function renderTransactions() {
   const list = document.getElementById('transactionList');
@@ -207,17 +140,6 @@ function estraiValore(author, text, time) {
   })
 }
 
-function getStartOfWeek(date) {
-  const day = date.getDay(),
-    diff = date.getDate() - day + (day == 0 ? -6 : 1);
-  return new Date(new Date(date.setDate(diff)).setHours(0, 0, 0, 0));
-}
-
-function getEndOfWeek(date) {
-  var lastday = date.getDate() - (date.getDay() - 1) + 6;
-  return new Date((new Date(date.setDate(lastday))).setHours(23, 59, 59, 59));
-}
-
 
 function updateTotal() {
   let total = 0;
@@ -229,6 +151,7 @@ function updateTotal() {
       dirtTotal += i.amount
     }
   })
+
   document.querySelectorAll('.total')[0].textContent = "$" + total.toLocaleString() + " 💵";
   document.querySelectorAll('.dirtTotal')[0].textContent = "$" + dirtTotal.toLocaleString() + " 💴";
 }

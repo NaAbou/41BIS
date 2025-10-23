@@ -74,14 +74,16 @@
             backdrop-filter: blur(10px);
         }
 
-        .dirtBalance, .dirtTotal{
+        .dirtBalance,
+        .dirtTotal {
             font-size: 18px;
             font-weight: 600;
             color: #dec34a;
         }
 
 
-        .balance, .total{
+        .balance,
+        .total {
             font-size: 18px;
             font-weight: 600;
             color: #4ade80;
@@ -267,16 +269,20 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
 
-        .transaction-header {
+        .transaction-header h2 {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 25px;
             padding-bottom: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
         }
 
-        .transaction-header-left h2 {
+        .transaction-header-left {
             font-size: 24px;
             font-weight: 300;
             letter-spacing: 1px;

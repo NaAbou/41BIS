@@ -193,10 +193,11 @@ async function renderTransactions() {
     renderTransactions()
   }));
 
-  const total = filtered.filter(t => t.dirty === true && t.skip === false).reduce((sum, t) => sum + t.amount, 0);
-  const cleanTotal = filtered.filter(t => t.dirty === false && t.skip === false).reduce((sum, t) => sum + t.amount, 0);
+  const total = filtered.filter(t => t.dirty === true && t.skip !== true).reduce((sum, t) => sum + t.amount, 0);
+  const cleanTotal = filtered.filter(t => t.dirty === false && t.skip !== true).reduce((sum, t) => sum + t.amount, 0);
 
   loadTransactionsFromFirestore().then((transactions) => allTransactions = transactions)
+  console.log(total)
   updateTotals(total, cleanTotal);
   updateTotal();
 }
