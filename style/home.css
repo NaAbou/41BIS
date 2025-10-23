@@ -74,14 +74,16 @@
             backdrop-filter: blur(10px);
         }
 
-        .dirtBalance, .dirtTotal{
+        .dirtBalance,
+        .dirtTotal {
             font-size: 18px;
             font-weight: 600;
             color: #dec34a;
         }
 
 
-        .balance, .total{
+        .balance,
+        .total {
             font-size: 18px;
             font-weight: 600;
             color: #4ade80;
@@ -570,14 +572,13 @@
             position: absolute;
             top: 0;
             right: 0;
-            width: 18px;
-            height: 18px;
+            width: 22px;
+            height: 22px;
             border: none;
-            background: rgba(239, 68, 68, 0.3);
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 12px;
+            font-size: 14px;
             color: #fff;
             display: flex;
             align-items: center;
@@ -585,6 +586,16 @@
         }
 
         .transaction-skip:hover {
-            background: rgba(239, 68, 68, 0.6);
             transform: scale(1.1);
+        }
+
+        .transaction-text {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.6);
+            left: 0;
+            right: 0;
+            margin-inline: auto;
+            width: fit-content;
+            margin-bottom: 10px;
+            bottom: 0;
         }
