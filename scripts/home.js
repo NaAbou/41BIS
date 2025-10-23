@@ -242,10 +242,11 @@ function estraiValore(author, text, time) {
     if (str.includes("-")) value = -1 * value;
 
     console.log("completed with value: " + value + "made by: " + [author, ...authorMatch])
+
     const formattedTime = new Date(time)
     allTransactions.push({
       time: `${formattedTime.getHours().toString().padStart(2, '0')}:${formattedTime.getMinutes().toString().padStart(2, '0')}`,
-      author: [author, ...authorMatch],
+      author: authorMatch.includes(author)? authorMatch : [author, ...authorMatch],
       amount: value,
       dirty: !(text.toLowerCase().includes("puliti") || text.toLowerCase().includes("pulito")),
       date: formattedTime,
