@@ -30,7 +30,7 @@ async def on_ready():
     messages = []
     async for message in channel.history(limit=None):#, after=two_weeks_ago):
         messages.append({
-            "author": str(await bot.fetch_user(message.author.id)),
+            "author": message.author.display_name,
             "content": message.clean_content,
             "timestamp": message.created_at.isoformat()
         })
