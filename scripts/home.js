@@ -278,6 +278,9 @@ async function updateTotal() {
   const transactionsRef = collection(db, 'transactions');
   const snapshot = await getDocs(transactionsRef);
 
+  const moneyDocRef = await doc(db, 'items', 'elements');
+  const moneyDoc = (await getDoc(moneyDocRef)).data();
+
   snapshot.forEach((doc) => {
     const data = doc.data();
 
@@ -293,6 +296,12 @@ async function updateTotal() {
     }
   });
 
+
+  total -=  moneyDoc.offsetMoney
+  dirtTotal -= moneyDoc.offsetDirtyMoney
+
+  updateDoc(moneyDocRef, { money: total });
+  updateDoc(moneyDocRef, { dirtMoney: dirtTotal });
 
   document.querySelectorAll('.total')[0].textContent = "$" + total.toLocaleString() + " 💵";
   document.querySelectorAll('.dirtTotal')[0].textContent = "$" + dirtTotal.toLocaleString() + " 💴";
