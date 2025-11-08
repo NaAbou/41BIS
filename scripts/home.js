@@ -147,10 +147,12 @@ async function renderTransactions() {
       const textElement = this.querySelector('.transaction-text');
       if (textElement.style.display === 'none') {
         textElement.style.display = '';
-        this.style.paddingBottom = 75 + 'px';
+        const currentPadding = parseInt(getComputedStyle(this).paddingBottom) || 0;
+        this.style.paddingBottom = currentPadding + 75 + 'px';
       } else {
         textElement.style.display = 'none';
-        this.style.paddingBottom = 20 + 'px';
+        const currentPadding = parseInt(getComputedStyle(this).paddingBottom) || 0;
+        this.style.paddingBottom = currentPadding - 75 + 'px';
       }
     });
   })
