@@ -2,9 +2,8 @@ name: Discord Bot Message Collector
 
 on:
   schedule:
-    - cron: "0 12-17 * * *"
-    - cron: "*/20 18-23 * * *"
-    - cron: "*/20 0-2 * * *"
+    - cron: "0 12-23 * * *"
+    - cron: "0 0-2 * * *"
   workflow_dispatch:
 permissions:
   contents: write
