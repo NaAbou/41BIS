@@ -4,12 +4,22 @@ import os
 import asyncio
 import json
 from datetime import datetime, timezone, timedelta
-
+import requests
 
 # Configurazione del bot
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
+
+
+async def fetch_players():
+    """Scarica la lista dei giocatori dal server FiveM"""
+    data = requests.get("https://servers-frontend.fivem.net/api/servers/single/3vk49z").json().get("Data", {}).get("players", [])
+
+    players = data.get("Data", {}).get("players", [])
+    return players
+
+
 
 @bot.event
 async def on_ready():
