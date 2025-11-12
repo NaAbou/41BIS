@@ -15,27 +15,30 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 async def on_ready():
     print(f'✅ Bot connesso come {bot.user.name}')
 
-    channel_id = int(os.getenv("CHANNEL_ID"))
-    channel = bot.get_channel(channel_id)
-    if not channel:
-        print("❌ Canale non trovato!")
-        return
-
-    # Data corrente in UTC
-    today = datetime.now(timezone.utc).date()
-    print(f"📅 Data corrente (UTC): {today}")
-    two_weeks_ago = datetime.now(timezone.utc) - timedelta(days=14)
-
-    # Legge i messaggi solo di oggi
+    channel_ids_json = os.getenv("CHANNEL_ID","[]") #["4141241","14124","123123"]
+    channel_ids = json.loads(channel_ids_json)
     messages = []
-    async for message in channel.history(limit=None):#, after=two_weeks_ago):
-        messages.append({
-            "author": message.author.display_name,
-            "content": message.clean_content,
-            "timestamp": message.created_at.isoformat()
-        })
+    for cid in channel_ids:
+        channel = bot.get_channel(int(cid))
+        if not channel:
+            print("❌ Canale non trovato!")
+            return
 
-    print(f'📩 Trovati {len(messages)} messaggi del {today}')
+        # Data corrente in UTC
+        today = datetime.now(timezone.utc).date()
+        print(f"📅 Data corrente (UTC): {today}")
+        two_weeks_ago = datetime.now(timezone.utc) - timedelta(days=14)
+
+        # Legge i messaggi solo di oggi
+        
+        async for message in channel.history(limit=None):#, after=two_weeks_ago):
+            messages.append({
+                "author": message.author.display_name,
+                "content": message.clean_content,
+                "timestamp": message.created_at.isoformat()
+            })
+
+        print(f'📩 Trovati {len(messages)} messaggi del {today}')
 
     # Salva in un file JSON
     with open("messages.json", "w", encoding="utf-8") as f:
