@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="module" src="scripts\firebase-config.js"></script>
+  <script type="module" src='scripts\players.js' defer></script>
+  <link rel='stylesheet' href='style\players.css'>
+  <title>41 BIS IMPERO</title>
+</head>
+
+<body>
+  <div class="sidebar">
+    <div class="logo">Home</div>
+    <div class="nav-item" onclick="document.location.href = 'home.html'">📊 Dashboard</div>
+    <div class="nav-item">💰 Deposito</div>
+    <div class="nav-item" onclick="document.location.href = 'impostazioni.html'">⚙️ Impostazioni</div>
+    <div class="nav-item active" onclick="document.location.href = 'players.html'">&#128100;  Players</div>
+  </div>
+
+
+  <div class="main-content">
+        <div class="header">
+            <h1>Players</h1>
+            <p>Gestisci e visualizza tutti i giocatori</p>
+        </div>
+
+        <div class="search-bar">
+            <div class="search-controls">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Cerca per nome, email o città...">
+                </div>
+                <select class="role-filter" id="roleFilter">
+                    <option value="all">Tutti i ruoli</option>
+                </select>
+            </div>
+            <div class="results-count" id="resultsCount">0 giocatori trovati</div>
+        </div>
+
+        <div class="players-grid" id="playersGrid"></div>
+        
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            <h3 class="empty-title">Nessun giocatore trovato</h3>
+            <p class="empty-description">Prova a modificare i filtri di ricerca</p>
+        </div>
+  </div>
+
+</body>
+
+</html>
