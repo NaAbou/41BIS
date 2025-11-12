@@ -70,7 +70,7 @@ async def on_ready():
     with open("messages.json", "w", encoding="utf-8") as f:
         json.dump(messages, f, indent=2, ensure_ascii=False)
         
-    fetch_players()
+    await fetch_players()
     
     # Chiude il bot dopo 5 secondi (utile per GitHub Actions)
     await asyncio.sleep(5)
