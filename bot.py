@@ -15,6 +15,14 @@ async def fetch_players():
     data = requests.get("https://servers-frontend.fivem.net/api/servers/single/3vk49z").json().get("Data", "{}").get("players", "[]")
     messages = []
     
+    now = datetime.now(timezone.utc)
+    day_str = now.strftime("%Y-%m-%d")
+    hour_str = now.strftime("%H")
+    
+    folder_path = os.path.join("login_log", day_str)
+    os.makedirs(folder_path, exist_ok=True)
+    file_path = os.path.join(folder_path, f"{hour_str}.json")
+
     for elem in data:
         for i in elem.get("identifiers", []):
             if i.startswith("discord:"):
@@ -23,14 +31,6 @@ async def fetch_players():
                     "discordID": discordID,
                     "timestamp": now.timestamp()
                 })
-        
-    now = datetime.now(timezone.utc)
-    day_str = now.strftime("%Y-%m-%d")
-    hour_str = now.strftime("%H")
-    
-    folder_path = os.path.join("login_log", day_str)
-    os.makedirs(folder_path, exist_ok=True)
-    file_path = os.path.join(folder_path, f"{hour_str}.json")
                 
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(messages, f, indent=2, ensure_ascii=False)
