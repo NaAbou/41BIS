@@ -184,7 +184,7 @@ function renderPlayers() {
     grid.style.display = 'grid';
     emptyState.style.display = 'none';
     grid.innerHTML = filtered.map(createPlayerCard).join('');
-  }
+  }v
 
   const count = filtered.length;
   resultsCount.textContent = `${count} giocator${count !== 1 ? 'i' : 'e'} trovat${count !== 1 ? 'i' : 'o'}`;

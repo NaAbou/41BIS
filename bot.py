@@ -11,15 +11,31 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-
 async def fetch_players():
-    """Scarica la lista dei giocatori dal server FiveM"""
-    data = requests.get("https://servers-frontend.fivem.net/api/servers/single/3vk49z").json().get("Data", {}).get("players", [])
+    data = requests.get("https://servers-frontend.fivem.net/api/servers/single/3vk49z").json().get("Data", "{}").get("players", "[]")
+    messages = []
+    
+    for elem in data:
+        for i in elem.get("identifiers", []):
+            if i.startswith("discord:"):
+                discordID = i.split(":", 1)[1]
+                messages.append({
+                    "discordID": discordID,
+                    "timestamp": now.timestamp()
+                })
+        
+    now = datetime.now(timezone.utc)
+    day_str = now.strftime("%Y-%m-%d")
+    hour_str = now.strftime("%H")
+    
+    folder_path = os.path.join("login_log", day_str)
+    os.makedirs(folder_path, exist_ok=True)
+    file_path = os.path.join(folder_path, f"{hour_str}.json")
+                
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(messages, f, indent=2, ensure_ascii=False)
 
-    players = data.get("Data", {}).get("players", [])
-    return players
-
-
+    print(f"💾 Salvato file: {file_path} ({len(messages)} player)")
 
 @bot.event
 async def on_ready():
@@ -53,7 +69,9 @@ async def on_ready():
     # Salva in un file JSON
     with open("messages.json", "w", encoding="utf-8") as f:
         json.dump(messages, f, indent=2, ensure_ascii=False)
-
+        
+    fetch_players()
+    
     # Chiude il bot dopo 5 secondi (utile per GitHub Actions)
     await asyncio.sleep(5)
     await bot.close()
