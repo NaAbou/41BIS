@@ -202,36 +202,100 @@ setInterval(() => {
 
 
 async function getPlayers() {
-  var response = await fetch("https://servers-frontend.fivem.net/api/servers/single/3vk49z")
+  const WORKER_URL = 'https://discord-proxy.nadrabu3.workers.dev';
+  const players = [];
+  
+  try {
+    const response = await fetch("https://servers-frontend.fivem.net/api/servers/single/3vk49z");
+    const responseJSON = await response.json();
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    const totalPlayers = responseJSON.Data.players.length;
+    console.log(`📥 Inizio caricamento di ${totalPlayers} players...`);
+
+    let processedCount = 0;
+
+    // ✅ USA FOR...OF, NON PROMISE.ALL!
+    for (const user of responseJSON.Data.players) {
+      const startTime = Date.now();
+      processedCount++;
+
+      try {
+        const discordIdentifier = user.identifiers.find(id => id.startsWith("discord:"));
+        const steamIdentifier = user.identifiers.find(id => id.startsWith("steam:"));
+        
+        if (!discordIdentifier) {
+          console.warn(`⚠️ [${processedCount}/${totalPlayers}] Player "${user.name}" senza Discord - SKIP`);
+          continue;
+        }
+
+        const discordID = discordIdentifier.split(":")[1];
+        const steamID = steamIdentifier ? steamIdentifier.split(":")[1] : null;
+
+        console.log(`🔄 [${processedCount}/${totalPlayers}] Carico "${user.name}"... (ID: ${discordID})`);
+
+        const discordResponse = await fetch(`${WORKER_URL}?discordID=${discordID}`);
+        
+        if (!discordResponse.ok) {
+          const status = discordResponse.status;
+          console.error(`❌ [${processedCount}/${totalPlayers}] Errore ${status} per "${user.name}"`);
+          
+          // Se è rate limit, aspetta 2 secondi
+          if (status === 429) {
+            console.warn('⏸️ RATE LIMIT! Aspetto 2 secondi...');
+            await sleep(10000);
+          }
+          continue;
+        }
+
+        const discordUser = await discordResponse.json();
+        
+        // Controlla se viene dalla cache
+        const cacheStatus = discordResponse.headers.get('X-Cache') || 'UNKNOWN';
+
+        players.push({
+          gameId: user.id,
+          name: discordUser.username,
+          avatar: discordUser.avatar 
+            ? `https://cdn.discordapp.com/avatars/${discordID}/${discordUser.avatar}.png`
+            : 'https://cdn.discordapp.com/embed/avatars/0.png',
+          role: 'player',
+          discordID: discordID,
+          steamHex: steamID,
+          lastLogin: '',
+          hoursThisWeek: 0,
+          status: 'active'
+        });
+
+        const elapsed = Date.now() - startTime;
+        console.log(`✅ [${processedCount}/${totalPlayers}] "${discordUser.username}" caricato in ${elapsed}ms [Cache: ${cacheStatus}]`);
+
+        // ⏱️ Aspetta solo se NON è dalla cache
+        if (cacheStatus === 'MISS') {
+          console.log(`⏱️ Aspetto 300ms prima del prossimo...`);
+          await sleep(500);
+        } else {
+          // Se è cache, aspetta solo 50ms
+          await sleep(50);
+        }
+
+      } catch (error) {
+        console.error(`❌ [${processedCount}/${totalPlayers}] Errore su "${user.name}":`, error);
+      }
+    }
+
+    console.log(`🎉 COMPLETATO! ${players.length}/${totalPlayers} players caricati con successo`);
+    return players;
+
+  } catch (error) {
+    console.error('❌ Errore generale:', error);
+    return [];
   }
-
-  const responseJSON = await response.json();
-
-  responseJSON.Data.players.forEach(async (user) => {
-    console.log(user)
-    const discordID = user.identifiers.find(id => id.startsWith("discord:")).split(":")[1]; 
-    const steamID = user.identifiers.find(id => id.startsWith("steam:")).split(":")[1]; 
-
-    
-    //const discordUSER = await fetch("https://discord.com/api/v9/users/" + discordID, )
-
-    players.concat({
-      gameId: user.id,
-      name: '',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Marco',
-      role: 'player', // fazionato, pinnato, player
-      discordID: discordID,
-      steamHex: steamID,
-      lastLogin: '2024-11-13T14:30:00',
-      hoursThisWeek: 24.5,
-      status: 'active'
-    })
-  })
-
-  console.log('✅ Dati server ricevuti:', players)
 }
 
-getPlayers()
+getPlayers().then(players => {
+  console.log('📋 Lista finale:', players);
+  // Aggiorna la tua UI qui
+});
+
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
