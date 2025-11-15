@@ -14,21 +14,24 @@ onAuthStateChanged(auth, (user) => {
 
 //https://stackoverflow.com/questions/64933979/discord-get-user-by-id
 
+/*{
+  id: 1,
+  gameId: 'MR_2024',
+  name: 'Marco Rossi',
+  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Marco',
+  role: 'fazionato', // fazionato, pinnato, player
+  discordID: '',
+  steamHex: '',
+  lastLogin: '2024-11-13T14:30:00',
+  hoursThisWeek: 24.5,
+  status: 'active'
+},*/
+
+
 
 // Dati giocatori aggiornati con tutti i campi richiesti
 const players = [
-  {
-    id: 1,
-    gameId: 'MR_2024',
-    name: 'Marco Rossi',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Marco',
-    role: 'fazionato', // fazionato, pinnato, player
-    discordID: '',
-    steamHex: '',
-    lastLogin: '2024-11-13T14:30:00',
-    hoursThisWeek: 24.5,
-    status: 'active'
-  },
+
 ];
 
 let searchTerm = '';
@@ -89,7 +92,6 @@ function createPlayerCard(player) {
     <div class="player-card">
       <div class="card-header ${player.role}">
         <div class="id-badge">ID: ${player.gameId}</div>
-        <div class="online-badge ${player.status}">${statusText}</div>
         <div class="avatar-wrapper">
           <img src="${player.avatar}" alt="${player.name}" class="avatar">
           <div class="status-indicator status-${player.status}"></div>
@@ -112,17 +114,16 @@ function createPlayerCard(player) {
 
         <div class="player-info">
           <div class="info-item">
-            <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            <svg class="info-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
             </svg>
-            <span class="info-text">${player.email}</span>
+            <span class="info-text">${player.discordID}</span>
           </div>
           <div class="info-item">
-            <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <svg class="info-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.605 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25 1.297.539 2.793-.076 3.332-1.375.263-.63.264-1.319.005-1.949s-.75-1.121-1.377-1.383c-.624-.26-1.29-.249-1.878-.03l1.523.63c.956.4 1.409 1.5 1.009 2.455-.397.957-1.497 1.41-2.454 1.012H7.54zm11.415-9.303c0-1.662-1.353-3.015-3.015-3.015-1.665 0-3.015 1.353-3.015 3.015 0 1.665 1.35 3.015 3.015 3.015 1.663 0 3.015-1.35 3.015-3.015zm-5.273-.005c0-1.252 1.013-2.266 2.265-2.266 1.249 0 2.266 1.014 2.266 2.266 0 1.251-1.017 2.265-2.266 2.265-1.253 0-2.265-1.014-2.265-2.265z"/>
             </svg>
-            <span class="info-text">${player.location}</span>
+            <span class="info-text">${player.steamHex}</span>
           </div>
         </div>
 
@@ -132,19 +133,33 @@ function createPlayerCard(player) {
   `;
 }
 
-// Filtra i giocatori in base ai criteri di ricerca
 function filterPlayers() {
-  return players.filter(player => {
+  console.log('=== DEBUG FILTRO ===');
+  console.log('searchTerm:', searchTerm);
+  console.log('filterRole:', filterRole);
+  console.log('Numero players:', players.length);
+  console.log('Primo player:', players[0]);
+  
+  const result = players.filter(player => {
+    // Converti tutti i valori in stringhe minuscole per il confronto
+    const playerName = (player.name || '').toString().toLowerCase();
+    const playerGameId = (player.gameId || '').toString().toLowerCase();
+    
     const matchesSearch = searchTerm === '' ||
-      player.name.toLowerCase().includes(searchTerm) ||
-      player.gameId.toLowerCase().includes(searchTerm) ||
-      player.email.toLowerCase().includes(searchTerm) ||
-      player.location.toLowerCase().includes(searchTerm);
+      playerName.includes(searchTerm) ||
+      playerGameId.includes(searchTerm);
 
     const matchesRole = filterRole === 'all' || player.role === filterRole;
-
+    
+    console.log(`Player: ${player.name} | Name match: ${playerName.includes(searchTerm)} | Search: "${searchTerm}" | Name: "${playerName}"`);
+    
     return matchesSearch && matchesRole;
   });
+  
+  console.log('Risultati filtrati:', result.length);
+  console.log('===================');
+  
+  return result;
 }
 
 // Renderizza le card dei giocatori
@@ -203,8 +218,7 @@ setInterval(() => {
 
 async function getPlayers() {
   const WORKER_URL = 'https://discord-proxy.nadrabu3.workers.dev';
-  const players = [];
-  
+
   try {
     const response = await fetch("https://servers-frontend.fivem.net/api/servers/single/3vk49z");
     const responseJSON = await response.json();
@@ -222,7 +236,7 @@ async function getPlayers() {
       try {
         const discordIdentifier = user.identifiers.find(id => id.startsWith("discord:"));
         const steamIdentifier = user.identifiers.find(id => id.startsWith("steam:"));
-        
+
         if (!discordIdentifier) {
           console.warn(`⚠️ [${processedCount}/${totalPlayers}] Player "${user.name}" senza Discord - SKIP`);
           continue;
@@ -234,28 +248,28 @@ async function getPlayers() {
         console.log(`🔄 [${processedCount}/${totalPlayers}] Carico "${user.name}"... (ID: ${discordID})`);
 
         const discordResponse = await fetch(`${WORKER_URL}?discordID=${discordID}`);
-        
+
         if (!discordResponse.ok) {
           const status = discordResponse.status;
           console.error(`❌ [${processedCount}/${totalPlayers}] Errore ${status} per "${user.name}"`);
-          
+
           // Se è rate limit, aspetta 2 secondi
           if (status === 429) {
             console.warn('⏸️ RATE LIMIT! Aspetto 2 secondi...');
-            await sleep(10000);
+            await sleep(30000);
           }
           continue;
         }
 
         const discordUser = await discordResponse.json();
-        
+
         // Controlla se viene dalla cache
         const cacheStatus = discordResponse.headers.get('X-Cache') || 'UNKNOWN';
 
         players.push({
           gameId: user.id,
           name: discordUser.username,
-          avatar: discordUser.avatar 
+          avatar: discordUser.avatar
             ? `https://cdn.discordapp.com/avatars/${discordID}/${discordUser.avatar}.png`
             : 'https://cdn.discordapp.com/embed/avatars/0.png',
           role: 'player',
@@ -268,22 +282,13 @@ async function getPlayers() {
 
         const elapsed = Date.now() - startTime;
         console.log(`✅ [${processedCount}/${totalPlayers}] "${discordUser.username}" caricato in ${elapsed}ms [Cache: ${cacheStatus}]`);
-
-        // ⏱️ Aspetta solo se NON è dalla cache
-        if (cacheStatus === 'MISS') {
-          console.log(`⏱️ Aspetto 300ms prima del prossimo...`);
-          await sleep(500);
-        } else {
-          // Se è cache, aspetta solo 50ms
-          await sleep(50);
-        }
-
       } catch (error) {
         console.error(`❌ [${processedCount}/${totalPlayers}] Errore su "${user.name}":`, error);
       }
     }
 
     console.log(`🎉 COMPLETATO! ${players.length}/${totalPlayers} players caricati con successo`);
+    renderPlayers()
     return players;
 
   } catch (error) {

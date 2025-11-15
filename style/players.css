@@ -244,34 +244,6 @@ body {
     background: #6b7280;
 }
 
-/* Badge Online/Offline */
-.online-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    backdrop-filter: blur(10px);
-}
-
-.online-badge.active {
-    background: rgba(16, 185, 129, 0.9);
-    color: #fff;
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
-    border: rgb(39, 39, 39) solid 1px;
-    animation: pulse-badge 2s infinite;
-}
-
-.online-badge.inactive {
-    background: rgba(107, 114, 128, 0.8);
-    border: rgb(39, 39, 39) solid 1px;
-    color: #d1d5db;
-}
-
 /* Animazioni */
 @keyframes pulse-green {
     0% {
