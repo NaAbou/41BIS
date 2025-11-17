@@ -14,26 +14,10 @@ onAuthStateChanged(auth, (user) => {
 
 //https://stackoverflow.com/questions/64933979/discord-get-user-by-id
 
-/*{
-  id: 1,
-  gameId: 'MR_2024',
-  name: 'Marco Rossi',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Marco',
-  role: 'fazionato', // fazionato, pinnato, player
-  discordID: '',
-  steamHex: '',
-  lastLogin: '2024-11-13T14:30:00',
-  hoursThisWeek: 24.5,
-  status: 'active'
-},*/
 
+const players = [];
 
-
-// Dati giocatori aggiornati con tutti i campi richiesti
-const players = [
-
-];
-
+let jsonPlayers; 
 let searchTerm = '';
 let filterRole = 'all';
 
@@ -92,11 +76,23 @@ function createPlayerCard(player) {
     <div class="player-card">
       <div class="card-header ${player.role}">
         <div class="id-badge">ID: ${player.gameId}</div>
+        
+        <!-- ✅ PUNTINA ROSSA CLASSICA -->
+        <button class="pin-btn ${player.isPinned ? 'pinned' : ''}" 
+                onclick="togglePin(${player.id})" 
+                title="${player.isPinned ? 'Rimuovi pin' : 'Pinna player'}">
+          <img class="pin-icon" src="../images/pin.png" />
+        </button>
+        
         <div class="avatar-wrapper">
-          <img src="${player.avatar}" alt="${player.name}" class="avatar">
+          <img src="https://cdn.discordapp.com/avatars/${player.discordID}/${player.avatar}.png" 
+               alt="${player.name}" 
+               class="avatar"
+               onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
           <div class="status-indicator status-${player.status}"></div>
         </div>
       </div>
+      
       <div class="card-body">
         <div class="player-name">${player.name}</div>
         <div class="player-role ${player.role}">${getRoleName(player.role)}</div>
@@ -127,7 +123,15 @@ function createPlayerCard(player) {
           </div>
         </div>
 
-        <button class="view-profile-btn" onclick="viewProfile(${player.id})">Visualizza Profilo</button>
+        <!-- ✅ BOTTONI: Profilo a sinistra, 41BIS discreto a destra -->
+        <div class="action-buttons">
+          <button class="view-profile-btn" onclick="viewProfile(${player.id})">
+            Visualizza Profilo
+          </button>
+          <button class="bis-btn-icon" onclick="add41Bis(${player.id})" title="Aggiungi a 41BIS">
+            + 41Bis
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -139,26 +143,26 @@ function filterPlayers() {
   console.log('filterRole:', filterRole);
   console.log('Numero players:', players.length);
   console.log('Primo player:', players[0]);
-  
+
   const result = players.filter(player => {
     // Converti tutti i valori in stringhe minuscole per il confronto
     const playerName = (player.name || '').toString().toLowerCase();
     const playerGameId = (player.gameId || '').toString().toLowerCase();
-    
+
     const matchesSearch = searchTerm === '' ||
       playerName.includes(searchTerm) ||
       playerGameId.includes(searchTerm);
 
     const matchesRole = filterRole === 'all' || player.role === filterRole;
-    
+
     console.log(`Player: ${player.name} | Name match: ${playerName.includes(searchTerm)} | Search: "${searchTerm}" | Name: "${playerName}"`);
-    
+
     return matchesSearch && matchesRole;
   });
-  
+
   console.log('Risultati filtrati:', result.length);
   console.log('===================');
-  
+
   return result;
 }
 
@@ -209,27 +213,42 @@ document.getElementById('roleFilter').addEventListener('change', (e) => {
 initializeRoleFilter();
 renderPlayers();
 
-// Aggiorna l'ultimo login ogni minuto (opzionale)
-setInterval(() => {
-  renderPlayers();
-}, 60000); // 60000ms = 1 minuto
 
-
-
-async function getPlayers() {
+async function getPlayers(filteredPlayers) {
   const WORKER_URL = 'https://discord-proxy.nadrabu3.workers.dev';
 
   try {
     const response = await fetch("https://servers-frontend.fivem.net/api/servers/single/3vk49z");
     const responseJSON = await response.json();
 
-    const totalPlayers = responseJSON.Data.players.length;
+    jsonPlayers = responseJSON.Data.players
+
+    if (filteredPlayers != null) {
+      console.log("inside filter")
+
+      const discordIDs = new Set(
+        players
+          .map(user => user.identifiers.find(id => id.startsWith("discord:"))?.split(":")[1])
+          .filter(Boolean)
+      );
+
+      jsonPlayers = filteredPlayers;
+
+      jsonPlayers.forEach((player) => {
+        const discordID = player.identifiers
+          .find(id => id.startsWith("discord:"))
+          ?.split(":")[1];
+
+        jsonPlayers.status = discordID && discordIDs.has(discordID)? 'active' : 'inactive';
+      });
+    }
+    const totalPlayers = jsonPlayers.length;
+
     console.log(`📥 Inizio caricamento di ${totalPlayers} players...`);
 
     let processedCount = 0;
-
-    // ✅ USA FOR...OF, NON PROMISE.ALL!
-    for (const user of responseJSON.Data.players) {
+    console.log(jsonPlayers)
+    for (const user of jsonPlayers) {
       const startTime = Date.now();
       processedCount++;
 
@@ -255,7 +274,7 @@ async function getPlayers() {
 
           // Se è rate limit, aspetta 2 secondi
           if (status === 429) {
-            console.warn('⏸️ RATE LIMIT! Aspetto 2 secondi...');
+            console.warn('⏸️ RATE LIMIT!');
             await sleep(30000);
           }
           continue;
@@ -269,9 +288,7 @@ async function getPlayers() {
         players.push({
           gameId: user.id,
           name: discordUser.username,
-          avatar: discordUser.avatar
-            ? `https://cdn.discordapp.com/avatars/${discordID}/${discordUser.avatar}.png`
-            : 'https://cdn.discordapp.com/embed/avatars/0.png',
+          avatar: discordUser.avatar,
           role: 'player',
           discordID: discordID,
           steamHex: steamID,
@@ -288,6 +305,7 @@ async function getPlayers() {
     }
 
     console.log(`🎉 COMPLETATO! ${players.length}/${totalPlayers} players caricati con successo`);
+
     renderPlayers()
     return players;
 
@@ -301,6 +319,22 @@ getPlayers().then(players => {
   console.log('📋 Lista finale:', players);
   // Aggiorna la tua UI qui
 });
+
+
+async function getDBPlayer(docName) {
+  const data = await getDocs(doc(db, "players", docName)).data();
+  const players = Array.isArray(data) ? data.items : [];
+  return players;
+}
+
+async function addDBPlayer(docName){
+  const docRef = doc(db, "players", docName)
+  const data = await getDocs(doc(db, "players", docName)).data();
+
+
+  const player = jsonPlayers.filter((user) => user.identifiers.find(id => id.startsWith("discord:"))[1] == discordID) 
+  setDoc(docRef, [...data, player])
+}
 
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
