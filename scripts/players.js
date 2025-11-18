@@ -17,7 +17,7 @@ onAuthStateChanged(auth, (user) => {
 
 const players = [];
 
-let jsonPlayers; 
+let jsonPlayers;
 let searchTerm = '';
 let filterRole = 'all';
 
@@ -79,7 +79,7 @@ function createPlayerCard(player) {
         
         <!-- ✅ PUNTINA ROSSA CLASSICA -->
         <button class="pin-btn ${player.isPinned ? 'pinned' : ''}" 
-                onclick="togglePin(${player.id})" 
+                onclick="addDBPlayer('${player.discordID}','pinned')" 
                 title="${player.isPinned ? 'Rimuovi pin' : 'Pinna player'}">
           <img class="pin-icon" src="../images/pin.png" />
         </button>
@@ -128,7 +128,7 @@ function createPlayerCard(player) {
           <button class="view-profile-btn" onclick="viewProfile(${player.id})">
             Visualizza Profilo
           </button>
-          <button class="bis-btn-icon" onclick="add41Bis(${player.id})" title="Aggiungi a 41BIS">
+          <button class="bis-btn-icon" onclick="addDBPlayer('${player.discordID}','members')" title="Aggiungi a 41BIS">
             + 41Bis
           </button>
         </div>
@@ -217,38 +217,28 @@ renderPlayers();
 async function getPlayers(filteredPlayers) {
   const WORKER_URL = 'https://discord-proxy.nadrabu3.workers.dev';
 
+
+  let docRef = doc(db, "players", "pinned")
+  const dataPinned = (await getDoc(docRef)).data().pinned;
+
+  docRef = doc(db, "players", "members")
+  const dataMember = (await getDoc(docRef)).data().members 
+
+
+  //const dbPlayer = data.find((user) => user.identifiers.find(id => id.startsWith("discord:")).split(":")[1] === discordID);
+
   try {
     const response = await fetch("https://servers-frontend.fivem.net/api/servers/single/3vk49z");
     const responseJSON = await response.json();
 
     jsonPlayers = responseJSON.Data.players
-
-    if (filteredPlayers != null) {
-      console.log("inside filter")
-
-      const discordIDs = new Set(
-        players
-          .map(user => user.identifiers.find(id => id.startsWith("discord:"))?.split(":")[1])
-          .filter(Boolean)
-      );
-
-      jsonPlayers = filteredPlayers;
-
-      jsonPlayers.forEach((player) => {
-        const discordID = player.identifiers
-          .find(id => id.startsWith("discord:"))
-          ?.split(":")[1];
-
-        jsonPlayers.status = discordID && discordIDs.has(discordID)? 'active' : 'inactive';
-      });
-    }
     const totalPlayers = jsonPlayers.length;
-
     console.log(`📥 Inizio caricamento di ${totalPlayers} players...`);
-
     let processedCount = 0;
-    console.log(jsonPlayers)
-    for (const user of jsonPlayers) {
+
+    const allPlayers = [...dataMember, ...dataPinned, ...jsonPlayers]
+    
+    for (const user of allPlayers) {
       const startTime = Date.now();
       processedCount++;
 
@@ -294,7 +284,8 @@ async function getPlayers(filteredPlayers) {
           steamHex: steamID,
           lastLogin: '',
           hoursThisWeek: 0,
-          status: 'active'
+          status: jsonPlayers.some((user) => user.identifiers.some(id => id === `discord:${discordID}`)) ? 'active' : 'inactive',
+          isPinned: dataPinned.some((user) => user.identifiers.some(id => id === `discord:${discordID}`))
         });
 
         const elapsed = Date.now() - startTime;
@@ -321,20 +312,31 @@ getPlayers().then(players => {
 });
 
 
-async function getDBPlayer(docName) {
-  const data = await getDocs(doc(db, "players", docName)).data();
-  const players = Array.isArray(data) ? data.items : [];
-  return players;
+async function checkIfActive(discordID) {
+  
 }
 
-async function addDBPlayer(docName){
+async function addDBPlayer(discordID, docName) {
   const docRef = doc(db, "players", docName)
-  const data = await getDocs(doc(db, "players", docName)).data();
 
+  const data = (await getDoc(docRef)).data()[docName]
 
-  const player = jsonPlayers.filter((user) => user.identifiers.find(id => id.startsWith("discord:"))[1] == discordID) 
-  setDoc(docRef, [...data, player])
+  console.log(data)
+  const dbPlayer = data.find((user) => user.identifiers.find(id => id.startsWith("discord:")).split(":")[1] === discordID); 
+  console.log(players)
+  if(dbPlayer != null && dbPlayer != undefined){
+    data.splice(data.indexOf(dbPlayer))
+    setDoc(docRef, { [docName] : [...data] })
+    docName == "pinned"? players.find((user) => user.discordID === discordID).isPinned = false : players.find((user) => user.discordID === discordID).isMember = false
+  }else{
+    const player = jsonPlayers.find((user) => user.identifiers.find(id => id.startsWith("discord:")).split(":")[1] === discordID); 
+    setDoc(docRef, { [docName]: [...data, player] })
+    docName == "pinned"? players.find((user) => user.discordID === discordID).isPinned = true : players.find((user) => user.discordID === discordID).isMember = true
+  }
+  renderPlayers()
 }
 
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+window.addDBPlayer = addDBPlayer;
