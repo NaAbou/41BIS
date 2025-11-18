@@ -148,6 +148,80 @@ body {
     font-size: 14px;
 }
 
+/* ========================================
+   ✅ SEZIONI PLAYERS
+   ======================================== */
+.section-container {
+    margin-bottom: 48px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.section-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.section-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.section-icon.member {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.section-icon.pinned {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.section-icon.player {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+}
+
+.section-title h2 {
+    font-size: 24px;
+    font-weight: 500;
+    flex: 1;
+}
+
+.section-count {
+    background: rgba(212, 175, 55, 0.2);
+    color: #d4af37;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.section-empty {
+    text-align: center;
+    padding: 40px;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+/* ========================================
+   PLAYERS GRID
+   ======================================== */
 .players-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -259,18 +333,6 @@ body {
     }
 }
 
-@keyframes pulse-badge {
-
-    0%,
-    100% {
-        box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
-    }
-
-    50% {
-        box-shadow: 0 0 20px rgba(16, 185, 129, 0.8);
-    }
-}
-
 /* Card Body */
 .card-body {
     padding: 60px 24px 24px;
@@ -368,9 +430,69 @@ body {
     white-space: nowrap;
 }
 
-/* View Profile Button */
+/* ========================================
+   PUNTINA ROSSA CLASSICA
+   ======================================== */
+.pin-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
+    padding: 0;
+}
+
+.pin-btn:hover {
+    transform: scale(1.15) rotate(-10deg);
+}
+
+.pin-btn .pin-icon {
+    width: 24px;
+    height: 24px;
+    color: #94a3b8;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    opacity: 0.6;
+}
+
+.pin-btn:hover .pin-icon {
+    color: #64748b;
+    opacity: 1;
+}
+
+.pin-btn.pinned .pin-icon {
+    color: #ef4444;
+    filter: drop-shadow(0 3px 6px rgba(239, 68, 68, 0.4));
+    width: 30px;
+    height: 30px;
+    opacity: 1;
+}
+
+.pin-btn.pinned:hover .pin-icon {
+    color: #dc2626;
+    transform: rotate(-40deg) scale(1.1);
+}
+
+/* ========================================
+   BOTTONI AZIONE
+   ======================================== */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    align-items: center;
+}
+
 .view-profile-btn {
-    width: 100%;
+    flex: 1;
     padding: 12px 16px;
     background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
     border: none;
@@ -385,6 +507,36 @@ body {
 .view-profile-btn:hover {
     transform: scale(1.02);
     box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.bis-btn-icon {
+    width: 60px;
+    height: 40px;
+    min-width: 50px;
+    border: 2px solid #e5e7eb;
+    background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+    border-radius: 8px;
+    font-size: 8px;
+    font-weight: 700;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.bis-btn-icon:hover {
+    border-color: #dc2626;
+    background: #dc2626;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.bis-btn-icon:active {
+    transform: translateY(0);
 }
 
 /* Empty State */
@@ -441,132 +593,18 @@ body {
         font-size: 12px;
         padding: 10px;
     }
+
+    .section-title h2 {
+        font-size: 18px;
+    }
+
+    .section-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
 }
 
-
-/* ========================================
-   PUNTINA ROSSA CLASSICA
-   ======================================== */
-.card-header {
-    position: relative;
-}
-
-.pin-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    z-index: 10;
-    padding: 0;
-}
-
-.pin-btn:hover {
-    transform: scale(1.15) rotate(-10deg);
-}
-
-.pin-btn .pin-icon {
-    width: 24px;
-    height: 24px;
-    color: #94a3b8;
-    /* Grigio quando non pinnato */
-    transition: all 0.3s ease;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-    opacity: 0.6;
-}
-
-.pin-btn:hover .pin-icon {
-    color: #64748b;
-    opacity: 1;
-}
-
-/* Stato pinnato - ROSSO come nell'immagine */
-.pin-btn.pinned .pin-icon {
-    color: #ef4444;
-    /* Rosso vivace */
-    filter: drop-shadow(0 3px 6px rgba(239, 68, 68, 0.4));
-    width: 30px;
-    height: 30px;
-    opacity: 1;
-}
-
-.pin-btn.pinned:hover .pin-icon {
-    color: #dc2626;
-    transform: rotate(-40deg) scale(1.1);
-}
-
-/* ========================================
-   BOTTONI AZIONE - 41BIS DISCRETO
-   ======================================== */
-.action-buttons {
-    display: flex;
-    gap: 8px;
-    margin-top: 16px;
-    align-items: center;
-}
-
-/* Bottone profilo - principale */
-.view-profile-btn {
-    flex: 1;
-    padding: 10px 16px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    /* Mantieni il tuo stile esistente */
-}
-
-/* Bottone 41BIS - piccolo e discreto */
-.bis-btn-icon {
-    width: 60px;
-    height: 40px;
-    min-width: 50px;
-    border: 2px solid #e5e7eb;
-        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-
-    border-radius: 8px;
-    font-size: 8px;
-    font-weight: 700;
-    color: #6b7280;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-}
-
-.bis-btn-icon:hover {
-    border-color: #dc2626;
-    background: #dc2626;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-}
-
-.bis-btn-icon:active {
-    transform: translateY(0);
-}
-
-/* Variante ancora più piccola (opzionale) */
-.bis-btn-icon-tiny {
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    font-size: 10px;
-    border-radius: 6px;
-}
-
-/* Responsive */
 @media (max-width: 480px) {
     .action-buttons {
         gap: 6px;
@@ -578,4 +616,33 @@ body {
         min-width: 36px;
         font-size: 10px;
     }
+}
+/* ========================================
+   STILI AGGIUNTIVI PER BOTTONE 41BIS
+   Aggiungi questo al tuo file players.css esistente
+   ======================================== */
+
+/* Stato ATTIVO del bottone 41BIS (quando player è membro) */
+.bis-btn-icon.active {
+    border-color: #dc2626;
+    background: #dc2626 !important;
+    color: white;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.bis-btn-icon.active:hover {
+    background: #b91c1c !important;
+    border-color: #b91c1c;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+}
+
+/* Animazione quando si clicca */
+.bis-btn-icon:active {
+    transform: translateY(0) !important;
+}
+
+/* Visual feedback durante il toggle */
+.bis-btn-icon {
+    transition: all 0.3s ease;
 }

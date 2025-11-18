@@ -9,15 +9,8 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-//https://servers-frontend.fivem.net/api/servers/single/3vk49z
-//https://discord.com/api/v9/users/${id}
-
-//https://stackoverflow.com/questions/64933979/discord-get-user-by-id
-
-
 const players = [];
-
-let jsonPlayers;
+let allFiveMPlayers = [];
 let searchTerm = '';
 let filterRole = 'all';
 
@@ -53,19 +46,6 @@ function getRoleName(role) {
   return roleNames[role] || role;
 }
 
-// Inizializza il filtro dei ruoli
-function initializeRoleFilter() {
-  const roleFilter = document.getElementById('roleFilter');
-  const roles = [...new Set(players.map(p => p.role))];
-
-  roles.forEach(role => {
-    const option = document.createElement('option');
-    option.value = role;
-    option.textContent = getRoleName(role);
-    roleFilter.appendChild(option);
-  });
-}
-
 // Crea una card per il giocatore
 function createPlayerCard(player) {
   const lastLoginFormatted = formatLastLogin(player.lastLogin);
@@ -77,7 +57,6 @@ function createPlayerCard(player) {
       <div class="card-header ${player.role}">
         <div class="id-badge">ID: ${player.gameId}</div>
         
-        <!-- ✅ PUNTINA ROSSA CLASSICA -->
         <button class="pin-btn ${player.isPinned ? 'pinned' : ''}" 
                 onclick="addDBPlayer('${player.discordID}','pinned')" 
                 title="${player.isPinned ? 'Rimuovi pin' : 'Pinna player'}">
@@ -123,7 +102,6 @@ function createPlayerCard(player) {
           </div>
         </div>
 
-        <!-- ✅ BOTTONI: Profilo a sinistra, 41BIS discreto a destra -->
         <div class="action-buttons">
           <button class="view-profile-btn" onclick="viewProfile(${player.id})">
             Visualizza Profilo
@@ -137,64 +115,148 @@ function createPlayerCard(player) {
   `;
 }
 
-function filterPlayers() {
-  console.log('=== DEBUG FILTRO ===');
-  console.log('searchTerm:', searchTerm);
-  console.log('filterRole:', filterRole);
-  console.log('Numero players:', players.length);
-  console.log('Primo player:', players[0]);
+// ✅ Filtra players per categoria e search/role filter
+function filterPlayersByCategory(category) {
+  return players.filter(player => {
+    // Filtra per categoria
+    let matchesCategory = false;
+    if (category === 'member') {
+      matchesCategory = player.isMember;
+    } else if (category === 'pinned') {
+      matchesCategory = player.isPinned && !player.isMember;
+    } else if (category === 'player') {
+      matchesCategory = !player.isMember && !player.isPinned;
+    }
 
-  const result = players.filter(player => {
-    // Converti tutti i valori in stringhe minuscole per il confronto
+    if (!matchesCategory) return false;
+
+    // Filtra per search term
     const playerName = (player.name || '').toString().toLowerCase();
     const playerGameId = (player.gameId || '').toString().toLowerCase();
-
     const matchesSearch = searchTerm === '' ||
       playerName.includes(searchTerm) ||
       playerGameId.includes(searchTerm);
 
-    const matchesRole = filterRole === 'all' || player.role === filterRole;
-
-    console.log(`Player: ${player.name} | Name match: ${playerName.includes(searchTerm)} | Search: "${searchTerm}" | Name: "${playerName}"`);
+    // Filtra per role filter
+    let matchesRole = true;
+    if (filterRole === 'member') {
+      matchesRole = player.isMember;
+    } else if (filterRole === 'pinned') {
+      matchesRole = player.isPinned;
+    } else if (filterRole === 'player') {
+      matchesRole = !player.isMember && !player.isPinned;
+    }
 
     return matchesSearch && matchesRole;
   });
-
-  console.log('Risultati filtrati:', result.length);
-  console.log('===================');
-
-  return result;
 }
 
-// Renderizza le card dei giocatori
+// ✅ Renderizza le card dei giocatori nelle 3 sezioni
 function renderPlayers() {
-  const grid = document.getElementById('playersGrid');
+  // Sezione Membri
+  const membersGrid = document.getElementById('membersGrid');
+  const membersEmpty = document.getElementById('membersEmpty');
+  const membersCount = document.getElementById('membersCount');
+  const membersSection = document.getElementById('membersSection');
+
+  // Sezione Pinnati
+  const pinnedGrid = document.getElementById('pinnedGrid');
+  const pinnedEmpty = document.getElementById('pinnedEmpty');
+  const pinnedCount = document.getElementById('pinnedCount');
+  const pinnedSection = document.getElementById('pinnedSection');
+
+  // Sezione Players
+  const playersGrid = document.getElementById('playersGrid');
+  const playersEmpty = document.getElementById('playersEmpty');
+  const playersCount = document.getElementById('playersCount');
+  const playersSection = document.getElementById('playersSection');
+
+  // Empty state globale
   const emptyState = document.getElementById('emptyState');
   const resultsCount = document.getElementById('resultsCount');
 
-  const filtered = filterPlayers();
+  // Filtra players per categoria
+  const members = filterPlayersByCategory('member');
+  const pinned = filterPlayersByCategory('pinned');
+  const regularPlayers = filterPlayersByCategory('player');
 
-  if (filtered.length === 0) {
-    grid.style.display = 'none';
+  const totalFiltered = members.length + pinned.length + regularPlayers.length;
+
+  // Aggiorna contatore globale
+  resultsCount.textContent = `${totalFiltered} giocator${totalFiltered !== 1 ? 'i' : 'e'} trovat${totalFiltered !== 1 ? 'i' : 'o'}`;
+
+  // Se nessun player trovato, mostra empty state globale
+  if (totalFiltered === 0) {
+    membersSection.style.display = 'none';
+    pinnedSection.style.display = 'none';
+    playersSection.style.display = 'none';
     emptyState.style.display = 'block';
+    return;
   } else {
-    grid.style.display = 'grid';
     emptyState.style.display = 'none';
-    grid.innerHTML = filtered.map(createPlayerCard).join('');
   }
 
-  const count = filtered.length;
-  resultsCount.textContent = `${count} giocator${count !== 1 ? 'i' : 'e'} trovat${count !== 1 ? 'i' : 'o'}`;
+  // ✅ Renderizza Membri
+  if (members.length > 0) {
+    membersSection.style.display = 'block';
+    membersGrid.style.display = 'grid';
+    membersEmpty.style.display = 'none';
+    membersGrid.innerHTML = members.map(createPlayerCard).join('');
+    membersCount.textContent = members.length;
+  } else {
+    if (filterRole === 'all' || filterRole === 'member') {
+      membersSection.style.display = 'block';
+      membersGrid.style.display = 'none';
+      membersEmpty.style.display = 'block';
+      membersCount.textContent = '0';
+    } else {
+      membersSection.style.display = 'none';
+    }
+  }
+
+  // ✅ Renderizza Pinnati
+  if (pinned.length > 0) {
+    pinnedSection.style.display = 'block';
+    pinnedGrid.style.display = 'grid';
+    pinnedEmpty.style.display = 'none';
+    pinnedGrid.innerHTML = pinned.map(createPlayerCard).join('');
+    pinnedCount.textContent = pinned.length;
+  } else {
+    if (filterRole === 'all' || filterRole === 'pinned') {
+      pinnedSection.style.display = 'block';
+      pinnedGrid.style.display = 'none';
+      pinnedEmpty.style.display = 'block';
+      pinnedCount.textContent = '0';
+    } else {
+      pinnedSection.style.display = 'none';
+    }
+  }
+
+  // ✅ Renderizza Players
+  if (regularPlayers.length > 0) {
+    playersSection.style.display = 'block';
+    playersGrid.style.display = 'grid';
+    playersEmpty.style.display = 'none';
+    playersGrid.innerHTML = regularPlayers.map(createPlayerCard).join('');
+    playersCount.textContent = regularPlayers.length;
+  } else {
+    if (filterRole === 'all' || filterRole === 'player') {
+      playersSection.style.display = 'block';
+      playersGrid.style.display = 'none';
+      playersEmpty.style.display = 'block';
+      playersCount.textContent = '0';
+    } else {
+      playersSection.style.display = 'none';
+    }
+  }
 }
 
-// Funzione per visualizzare il profilo (da implementare)
+// Funzione per visualizzare il profilo
 window.viewProfile = function (playerId) {
   const player = players.find(p => p.id === playerId);
   if (player) {
     console.log('Visualizzazione profilo di:', player);
     alert(`Apertura profilo di ${player.name}\nID: ${player.gameId}`);
-    // Qui puoi implementare la navigazione alla pagina del profilo
-    // window.location.href = `profile.html?id=${playerId}`;
   }
 }
 
@@ -209,133 +271,250 @@ document.getElementById('roleFilter').addEventListener('change', (e) => {
   renderPlayers();
 });
 
-// Inizializzazione
-initializeRoleFilter();
-renderPlayers();
+// ✅ Rimuove duplicati basandosi su discordID
+function removeDuplicates(playersList) {
+  const uniqueMap = new Map();
 
+  for (const player of playersList) {
+    const discordIdentifier = player.identifiers?.find(id => id.startsWith("discord:"));
+    if (!discordIdentifier) continue;
 
-async function getPlayers(filteredPlayers) {
+    const discordID = discordIdentifier.split(":")[1];
+
+    if (!uniqueMap.has(discordID)) {
+      uniqueMap.set(discordID, player);
+    }
+  }
+
+  return Array.from(uniqueMap.values());
+}
+
+// ✅ Fetch con retry automatico
+async function fetchWithRetry(url, maxRetries = 3, baseDelay = 1000) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(url);
+
+      if (response.status === 429) {
+        const retryAfter = response.headers.get('Retry-After');
+        const delay = retryAfter ? parseInt(retryAfter) * 1000 : baseDelay * Math.pow(2, attempt);
+
+        console.warn(`⏸️ Rate limit! Riprovo tra ${delay / 1000}s... (Tentativo ${attempt + 1}/${maxRetries})`);
+        await sleep(delay);
+        continue;
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return response;
+
+    } catch (error) {
+      const isLastAttempt = attempt === maxRetries - 1;
+
+      if (isLastAttempt) {
+        throw error;
+      }
+
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.warn(`⚠️ Errore: ${error.message}. Riprovo tra ${delay / 1000}s...`);
+      await sleep(delay);
+    }
+  }
+}
+
+async function fetchDiscordDataSequential(users) {
   const WORKER_URL = 'https://discord-proxy.nadrabu3.workers.dev';
+  const results = [];
 
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    console.log(`🔄 Carico player ${i + 1}/${users.length}...`);
 
-  let docRef = doc(db, "players", "pinned")
-  const dataPinned = (await getDoc(docRef)).data().pinned;
+    try {
+      const discordIdentifier = user.identifiers.find(id => id.startsWith("discord:"));
+      const steamIdentifier = user.identifiers.find(id => id.startsWith("steam:"));
 
-  docRef = doc(db, "players", "members")
-  const dataMember = (await getDoc(docRef)).data().members 
+      if (!discordIdentifier) {
+        console.warn(`⚠️ Player "${user.name}" senza Discord - SKIP`);
+        continue;
+      }
 
+      const discordID = discordIdentifier.split(":")[1];
+      const steamID = steamIdentifier ? steamIdentifier.split(":")[1] : null;
 
-  //const dbPlayer = data.find((user) => user.identifiers.find(id => id.startsWith("discord:")).split(":")[1] === discordID);
+      const startTime = Date.now();
+      const response = await fetchWithRetry(`${WORKER_URL}?discordID=${discordID}`);
+      const discordUser = await response.json();
 
+      const elapsed = Date.now() - startTime;
+      const cacheStatus = response.headers.get('X-Cache') || 'UNKNOWN';
+
+      console.log(`✅ "${discordUser.username}" caricato in ${elapsed}ms [Cache: ${cacheStatus}]`);
+
+      results.push({
+        user,
+        discordID,
+        steamID,
+        discordUser
+      });
+
+    } catch (error) {
+      console.error(`❌ Errore nel player ${user.name}:`, error.message);
+    }
+  }
+
+  return results;
+}
+
+async function getPlayers() {
   try {
+    console.log('🚀 Inizio caricamento players...');
+
+    const docRefPinned = doc(db, "players", "pinned");
+    const docRefMembers = doc(db, "players", "members");
+
+    const [dataPinned, dataMembers] = await Promise.all([
+      getDoc(docRefPinned).then(doc => doc.data()?.pinned || []),
+      getDoc(docRefMembers).then(doc => doc.data()?.members || [])
+    ]);
+
+    console.log(`📌 ${dataPinned.length} pinnati, 🎖️ ${dataMembers.length} membri`);
+
     const response = await fetch("https://servers-frontend.fivem.net/api/servers/single/3vk49z");
     const responseJSON = await response.json();
+    allFiveMPlayers = responseJSON.Data.players;
 
-    jsonPlayers = responseJSON.Data.players
-    const totalPlayers = jsonPlayers.length;
-    console.log(`📥 Inizio caricamento di ${totalPlayers} players...`);
-    let processedCount = 0;
+    console.log(`🎮 ${allFiveMPlayers.length} players online su FiveM`);
 
-    const allPlayers = [...dataMember, ...dataPinned, ...jsonPlayers]
-    
-    for (const user of allPlayers) {
-      const startTime = Date.now();
-      processedCount++;
+    const combinedPlayers = [...dataMembers, ...dataPinned, ...allFiveMPlayers];
+    const uniquePlayers = removeDuplicates(combinedPlayers);
 
-      try {
-        const discordIdentifier = user.identifiers.find(id => id.startsWith("discord:"));
-        const steamIdentifier = user.identifiers.find(id => id.startsWith("steam:"));
+    console.log(`🔄 ${combinedPlayers.length} players totali → ${uniquePlayers.length} unici (${combinedPlayers.length - uniquePlayers.length} duplicati rimossi)`);
 
-        if (!discordIdentifier) {
-          console.warn(`⚠️ [${processedCount}/${totalPlayers}] Player "${user.name}" senza Discord - SKIP`);
-          continue;
-        }
+    const discordDataResults = await fetchDiscordDataSequential(uniquePlayers);
+    // Crea Set per lookup veloce
+    const onlineDiscordIDs = new Set(
+      allFiveMPlayers
+        .map(u => u.identifiers.find(id => id.startsWith("discord:")))
+        .filter(Boolean)
+        .map(id => id.split(":")[1])
+    );
 
-        const discordID = discordIdentifier.split(":")[1];
-        const steamID = steamIdentifier ? steamIdentifier.split(":")[1] : null;
+    const pinnedDiscordIDs = new Set(
+      dataPinned
+        .map(u => u.identifiers.find(id => id.startsWith("discord:")))
+        .filter(Boolean)
+        .map(id => id.split(":")[1])
+    );
 
-        console.log(`🔄 [${processedCount}/${totalPlayers}] Carico "${user.name}"... (ID: ${discordID})`);
+    const memberDiscordIDs = new Set(
+      dataMembers
+        .map(u => u.identifiers.find(id => id.startsWith("discord:")))
+        .filter(Boolean)
+        .map(id => id.split(":")[1])
+    );
 
-        const discordResponse = await fetch(`${WORKER_URL}?discordID=${discordID}`);
+    players.length = 0;
 
-        if (!discordResponse.ok) {
-          const status = discordResponse.status;
-          console.error(`❌ [${processedCount}/${totalPlayers}] Errore ${status} per "${user.name}"`);
-
-          // Se è rate limit, aspetta 2 secondi
-          if (status === 429) {
-            console.warn('⏸️ RATE LIMIT!');
-            await sleep(30000);
-          }
-          continue;
-        }
-
-        const discordUser = await discordResponse.json();
-
-        // Controlla se viene dalla cache
-        const cacheStatus = discordResponse.headers.get('X-Cache') || 'UNKNOWN';
-
-        players.push({
-          gameId: user.id,
-          name: discordUser.username,
-          avatar: discordUser.avatar,
-          role: 'player',
-          discordID: discordID,
-          steamHex: steamID,
-          lastLogin: '',
-          hoursThisWeek: 0,
-          status: jsonPlayers.some((user) => user.identifiers.some(id => id === `discord:${discordID}`)) ? 'active' : 'inactive',
-          isPinned: dataPinned.some((user) => user.identifiers.some(id => id === `discord:${discordID}`))
-        });
-
-        const elapsed = Date.now() - startTime;
-        console.log(`✅ [${processedCount}/${totalPlayers}] "${discordUser.username}" caricato in ${elapsed}ms [Cache: ${cacheStatus}]`);
-      } catch (error) {
-        console.error(`❌ [${processedCount}/${totalPlayers}] Errore su "${user.name}":`, error);
-      }
+    for (const result of discordDataResults) {
+      players.push({
+        id: players.length + 1,
+        gameId: result.user.id,
+        name: result.discordUser.username,
+        avatar: result.discordUser.avatar,
+        role: 'player',
+        discordID: result.discordID,
+        steamHex: result.steamID,
+        lastLogin: '',
+        hoursThisWeek: 0,
+        status: onlineDiscordIDs.has(result.discordID) ? 'active' : 'inactive',
+        isPinned: pinnedDiscordIDs.has(result.discordID),
+        isMember: memberDiscordIDs.has(result.discordID) // ✅ Aggiunto
+      });
     }
 
-    console.log(`🎉 COMPLETATO! ${players.length}/${totalPlayers} players caricati con successo`);
+    console.log(`🎉 COMPLETATO! ${players.length} players caricati con successo`);
+    renderPlayers();
 
-    renderPlayers()
     return players;
 
   } catch (error) {
     console.error('❌ Errore generale:', error);
+    const emptyState = document.getElementById('emptyState');
+    if (emptyState) {
+      emptyState.style.display = 'block';
+      emptyState.innerHTML = `
+        <div style="text-align: center; color: #ff6b6b;">
+          <h3>❌ Errore nel caricamento</h3>
+          <p>${error.message}</p>
+          <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px;">
+            Riprova
+          </button>
+        </div>
+      `;
+    }
     return [];
   }
 }
 
 getPlayers().then(players => {
   console.log('📋 Lista finale:', players);
-  // Aggiorna la tua UI qui
 });
 
-
-async function checkIfActive(discordID) {
-  
-}
-
 async function addDBPlayer(discordID, docName) {
-  const docRef = doc(db, "players", docName)
+  try {
+    const docRef = doc(db, "players", docName);
+    const docData = await getDoc(docRef);
+    const data = docData.data()?.[docName] || [];
 
-  const data = (await getDoc(docRef)).data()[docName]
+    const dbPlayer = data.find((user) =>
+      user.identifiers?.find(id => id.startsWith("discord:"))?.split(":")[1] === discordID
+    );
 
-  console.log(data)
-  const dbPlayer = data.find((user) => user.identifiers.find(id => id.startsWith("discord:")).split(":")[1] === discordID); 
-  console.log(players)
-  if(dbPlayer != null && dbPlayer != undefined){
-    data.splice(data.indexOf(dbPlayer))
-    setDoc(docRef, { [docName] : [...data] })
-    docName == "pinned"? players.find((user) => user.discordID === discordID).isPinned = false : players.find((user) => user.discordID === discordID).isMember = false
-  }else{
-    const player = jsonPlayers.find((user) => user.identifiers.find(id => id.startsWith("discord:")).split(":")[1] === discordID); 
-    setDoc(docRef, { [docName]: [...data, player] })
-    docName == "pinned"? players.find((user) => user.discordID === discordID).isPinned = true : players.find((user) => user.discordID === discordID).isMember = true
+    if (dbPlayer) {
+      const index = data.indexOf(dbPlayer);
+      data.splice(index, 1);
+      await setDoc(docRef, { [docName]: data });
+
+      const playerInList = players.find((user) => user.discordID === discordID);
+      if (playerInList) {
+        if (docName === "pinned") {
+          playerInList.isPinned = false;
+        } else {
+          playerInList.isMember = false;
+        }
+      }
+      console.log(`🔓 Player ${discordID} rimosso da ${docName}`);
+    } else {
+      const fivemPlayer = allFiveMPlayers.find((user) =>
+        user.identifiers?.find(id => id.startsWith("discord:"))?.split(":")[1] === discordID
+      );
+
+      if (fivemPlayer) {
+        await setDoc(docRef, { [docName]: [...data, fivemPlayer] });
+
+        const playerInList = players.find((user) => user.discordID === discordID);
+        if (playerInList) {
+          if (docName === "pinned") {
+            playerInList.isPinned = true;
+          } else {
+            playerInList.isMember = true;
+          }
+        }
+        console.log(`🔒 Player ${discordID} aggiunto a ${docName}`);
+      } else {
+        console.warn(`⚠️ Player ${discordID} non trovato su FiveM`);
+      }
+    }
+
+    renderPlayers();
+  } catch (error) {
+    console.error('❌ Errore in addDBPlayer:', error);
+    alert('Errore durante l\'operazione. Riprova.');
   }
-  renderPlayers()
 }
-
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 

@@ -39,16 +39,60 @@
                 </div>
                 <select class="role-filter" id="roleFilter">
                     <option value="all">Tutti i ruoli</option>
-                    <option value="fazionato">Fazionato</option>
-                    <option value="pinnato">Pinnato</option>
-                    <option value="player">Player</option>
+                    <option value="member">Membri 41BIS</option>
+                    <option value="pinned">Pinnati</option>
+                    <option value="player">Players</option>
                 </select>
             </div>
-            <div class="results-count" id="resultsCount">6 giocatori trovati</div>
+            <div class="results-count" id="resultsCount">0 giocatori trovati</div>
         </div>
 
-        <div class="players-grid" id="playersGrid"></div>
+        <!-- ✅ SEZIONE MEMBRI 41BIS -->
+        <div class="section-container" id="membersSection">
+            <div class="section-header">
+                <div class="section-title">
+                    <div class="section-icon member">🎖️</div>
+                    <h2>Membri 41BIS</h2>
+                    <span class="section-count" id="membersCount">0</span>
+                </div>
+            </div>
+            <div class="players-grid" id="membersGrid"></div>
+            <div class="section-empty" id="membersEmpty" style="display: none;">
+                <p>Nessun membro 41BIS</p>
+            </div>
+        </div>
 
+        <!-- ✅ SEZIONE PINNATI -->
+        <div class="section-container" id="pinnedSection">
+            <div class="section-header">
+                <div class="section-title">
+                    <div class="section-icon pinned">📌</div>
+                    <h2>Players Pinnati</h2>
+                    <span class="section-count" id="pinnedCount">0</span>
+                </div>
+            </div>
+            <div class="players-grid" id="pinnedGrid"></div>
+            <div class="section-empty" id="pinnedEmpty" style="display: none;">
+                <p>Nessun player pinnato</p>
+            </div>
+        </div>
+
+        <!-- ✅ SEZIONE PLAYERS NORMALI -->
+        <div class="section-container" id="playersSection">
+            <div class="section-header">
+                <div class="section-title">
+                    <div class="section-icon player">👤</div>
+                    <h2>Players</h2>
+                    <span class="section-count" id="playersCount">0</span>
+                </div>
+            </div>
+            <div class="players-grid" id="playersGrid"></div>
+            <div class="section-empty" id="playersEmpty" style="display: none;">
+                <p>Nessun player trovato</p>
+            </div>
+        </div>
+
+        <!-- Empty State Globale -->
         <div class="empty-state" id="emptyState" style="display: none;">
             <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
