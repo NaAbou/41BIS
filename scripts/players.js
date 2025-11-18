@@ -46,15 +46,23 @@ function getRoleName(role) {
   return roleNames[role] || role;
 }
 
-// Crea una card per il giocatore
+// ✅ Crea una card per il giocatore con TOGGLE BOTTONE 41BIS
 function createPlayerCard(player) {
   const lastLoginFormatted = formatLastLogin(player.lastLogin);
   const hoursFormatted = player.hoursThisWeek.toFixed(1);
-  const statusText = player.status === 'active' ? 'Online' : 'Offline';
+  const statusText = player.status === 'active' ? 'Online' : 'offline';
+
+  // ✅ TOGGLE BOTTONE 41BIS
+  const isMember = player.isMember || false;
+  const bisButtonText = isMember ? '- 41Bis' : '+ 41Bis';
+  const bisButtonClass = isMember ? 'bis-btn-icon active' : 'bis-btn-icon';
+  const bisButtonTitle = isMember ? 'Rimuovi da 41BIS' : 'Aggiungi a 41BIS';
+
+  console.log(player.role)
 
   return `
     <div class="player-card">
-      <div class="card-header ${player.role}">
+      <div class="card-header ${player.role} ${statusText}">
         <div class="id-badge">ID: ${player.gameId}</div>
         
         <button class="pin-btn ${player.isPinned ? 'pinned' : ''}" 
@@ -106,8 +114,10 @@ function createPlayerCard(player) {
           <button class="view-profile-btn" onclick="viewProfile(${player.id})">
             Visualizza Profilo
           </button>
-          <button class="bis-btn-icon" onclick="addDBPlayer('${player.discordID}','members')" title="Aggiungi a 41BIS">
-            + 41Bis
+          <button class="${bisButtonClass}" 
+                  onclick="addDBPlayer('${player.discordID}','members')" 
+                  title="${bisButtonTitle}">
+            ${bisButtonText}
           </button>
         </div>
       </div>
@@ -394,6 +404,7 @@ async function getPlayers() {
     console.log(`🔄 ${combinedPlayers.length} players totali → ${uniquePlayers.length} unici (${combinedPlayers.length - uniquePlayers.length} duplicati rimossi)`);
 
     const discordDataResults = await fetchDiscordDataSequential(uniquePlayers);
+    
     // Crea Set per lookup veloce
     const onlineDiscordIDs = new Set(
       allFiveMPlayers
@@ -419,19 +430,22 @@ async function getPlayers() {
     players.length = 0;
 
     for (const result of discordDataResults) {
+      const isMember =  memberDiscordIDs.has(result.discordID)
+      const isPinned = pinnedDiscordIDs.has(result.discordID)
+
       players.push({
         id: players.length + 1,
         gameId: result.user.id,
         name: result.discordUser.username,
         avatar: result.discordUser.avatar,
-        role: 'player',
+        role: isMember? 'member' : isPinned? 'pinned' : 'player',
         discordID: result.discordID,
         steamHex: result.steamID,
         lastLogin: '',
         hoursThisWeek: 0,
         status: onlineDiscordIDs.has(result.discordID) ? 'active' : 'inactive',
-        isPinned: pinnedDiscordIDs.has(result.discordID),
-        isMember: memberDiscordIDs.has(result.discordID) // ✅ Aggiunto
+        isPinned: isPinned,
+        isMember: isMember
       });
     }
 

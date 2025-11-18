@@ -250,16 +250,20 @@ body {
     background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
 }
 
-.card-header.fazionato {
+.card-header.member {
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
 }
 
-.card-header.pinnato {
+.card-header.pinned {
     background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
 }
 
-.card-header.player {
+.card-header.player {   
     background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+}
+
+.card-header.offline {
+    background: #6b7280;
 }
 
 /* ID Badge nell'angolo */
@@ -355,13 +359,13 @@ body {
     margin-bottom: 20px;
 }
 
-.player-role.fazionato {
+.player-role.member {
     background: rgba(231, 76, 60, 0.2);
     color: #e74c3c;
     border: 1px solid rgba(231, 76, 60, 0.4);
 }
 
-.player-role.pinnato {
+.player-role.pinned {
     background: rgba(52, 152, 219, 0.2);
     color: #3498db;
     border: 1px solid rgba(52, 152, 219, 0.4);
@@ -509,34 +513,75 @@ body {
     box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
 }
 
+/* ========================================
+   ✅ BOTTONE 41BIS MODERNO
+   ======================================== */
 .bis-btn-icon {
-    width: 60px;
-    height: 40px;
-    min-width: 50px;
-    border: 2px solid #e5e7eb;
-    background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-    border-radius: 8px;
-    font-size: 8px;
-    font-weight: 700;
-    color: #6b7280;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    /* Dimensioni */
+    min-width: 70px;
+    height: 42px;
+    padding: 10px 16px;
+    
+    /* Layout */
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
+    gap: 6px;
+    
+    /* Bordo e sfondo */
+    border: 2px solid rgba(212, 175, 55, 0.4);
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    
+    /* Testo */
+    font-size: 13px;
+    font-weight: 600;
+    color: #d4af37;
+    letter-spacing: 0.3px;
+    
+    /* Effetti */
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* Hover stato NON membro */
 .bis-btn-icon:hover {
-    border-color: #dc2626;
-    background: #dc2626;
-    color: white;
+    border-color: #d4af37;
+    background: rgba(212, 175, 55, 0.1);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
 }
 
+/* ✅ Stato ATTIVO - Membro 41BIS */
+.bis-btn-icon.active {
+    border-color: #dc2626;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+/* Hover stato ATTIVO */
+.bis-btn-icon.active:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.5);
+}
+
+/* Click effect */
 .bis-btn-icon:active {
-    transform: translateY(0);
+    transform: translateY(0) scale(0.98);
+}
+
+/* Stato focus (accessibilità) */
+.bis-btn-icon:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
+
+.bis-btn-icon.active:focus {
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
 }
 
 /* Empty State */
@@ -611,38 +656,9 @@ body {
     }
 
     .bis-btn-icon {
-        width: 36px;
-        height: 36px;
-        min-width: 36px;
-        font-size: 10px;
+        min-width: 65px;
+        height: 38px;
+        padding: 8px 14px;
+        font-size: 12px;
     }
-}
-/* ========================================
-   STILI AGGIUNTIVI PER BOTTONE 41BIS
-   Aggiungi questo al tuo file players.css esistente
-   ======================================== */
-
-/* Stato ATTIVO del bottone 41BIS (quando player è membro) */
-.bis-btn-icon.active {
-    border-color: #dc2626;
-    background: #dc2626 !important;
-    color: white;
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-}
-
-.bis-btn-icon.active:hover {
-    background: #b91c1c !important;
-    border-color: #b91c1c;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
-}
-
-/* Animazione quando si clicca */
-.bis-btn-icon:active {
-    transform: translateY(0) !important;
-}
-
-/* Visual feedback durante il toggle */
-.bis-btn-icon {
-    transition: all 0.3s ease;
 }
