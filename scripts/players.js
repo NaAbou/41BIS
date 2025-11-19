@@ -67,7 +67,7 @@ function createPlayerCard(player) {
         <button class="pin-btn ${player.isPinned ? 'pinned' : ''}" 
                 onclick="addDBPlayer('${player.discordID}','pinned')" 
                 title="${player.isPinned ? 'Rimuovi pin' : 'Pinna player'}">
-          <img class="pin-icon" src="../images/pin.png" />
+          <img class="pin-icon" src="/41BIS/images/pin.png" />
         </button>
         
         <div class="avatar-wrapper">
