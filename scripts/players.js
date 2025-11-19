@@ -10,6 +10,7 @@ onAuthStateChanged(auth, (user) => {
 });
 
 const players = [];
+const login_log = []
 let allFiveMPlayers = [];
 let searchTerm = '';
 let filterRole = 'all';
@@ -58,8 +59,6 @@ function createPlayerCard(player) {
   const bisButtonClass = isMember ? 'bis-btn-icon active' : 'bis-btn-icon';
   const bisButtonTitle = isMember ? 'Rimuovi da 41BIS' : 'Aggiungi a 41BIS';
 
-  console.log(player.role)
-
   return `
     <div class="player-card">
       <div class="card-header ${player.role} ${statusText}">
@@ -87,11 +86,11 @@ function createPlayerCard(player) {
         <div class="stats-grid">
           <div class="stat-item">
             <div class="stat-label">Ultimo Login</div>
-            <div class="stat-value">${lastLoginFormatted}</div>
+            <div class="stat-value">${login_log.findLast((log) => log.discordID == player.discordID)?.date}</div>
           </div>
           <div class="stat-item">
             <div class="stat-label">Ore Settimana</div>
-            <div class="stat-value">${hoursFormatted}h</div>
+            <div class="stat-value">${login_log.filter((log) => log.discordID == player.discordID)?.length}h</div>
           </div>
         </div>
 
@@ -404,7 +403,7 @@ async function getPlayers() {
     console.log(`🔄 ${combinedPlayers.length} players totali → ${uniquePlayers.length} unici (${combinedPlayers.length - uniquePlayers.length} duplicati rimossi)`);
 
     const discordDataResults = await fetchDiscordDataSequential(uniquePlayers);
-    
+
     // Crea Set per lookup veloce
     const onlineDiscordIDs = new Set(
       allFiveMPlayers
@@ -430,7 +429,7 @@ async function getPlayers() {
     players.length = 0;
 
     for (const result of discordDataResults) {
-      const isMember =  memberDiscordIDs.has(result.discordID)
+      const isMember = memberDiscordIDs.has(result.discordID)
       const isPinned = pinnedDiscordIDs.has(result.discordID)
 
       players.push({
@@ -438,7 +437,7 @@ async function getPlayers() {
         gameId: result.user.id,
         name: result.discordUser.username,
         avatar: result.discordUser.avatar,
-        role: isMember? 'member' : isPinned? 'pinned' : 'player',
+        role: isMember ? 'member' : isPinned ? 'pinned' : 'player',
         discordID: result.discordID,
         steamHex: result.steamID,
         lastLogin: '',
@@ -450,6 +449,9 @@ async function getPlayers() {
     }
 
     console.log(`🎉 COMPLETATO! ${players.length} players caricati con successo`);
+
+    while(login_log.length === 0){ await sleep(100)}
+
     renderPlayers();
 
     return players;
@@ -533,3 +535,51 @@ async function addDBPlayer(discordID, docName) {
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 window.addDBPlayer = addDBPlayer;
+
+
+//SEZIONE PER ORE
+async function getTotalWeekHour() {
+  let current = getStartOfWeek();
+  let now = new Date()
+  const temp_login_log = []
+  now.setDate(now.getDate() + 1)
+  while (current <= now) {
+    for (let hour = 1; hour < 24; hour++) {
+      const hourString = String(hour).padStart(2, '0');
+      const url = `https://naabou.github.io/41BIS/login_log/${current.toISOString().split('T')[0]}/${hourString}.json`;
+
+      try {
+        const response = await fetch(url);
+
+        if (response.ok) {
+          const messages = await response.json();
+
+          messages.forEach((message) => {
+            temp_login_log.push({
+              discordID: message.discordID,
+              date: current.toISOString().split('T')[0],
+              hour: hour
+            });
+          });
+        }
+      } catch (error) {
+        console.log(`  ❌ ${hourString}:00 - Errore: ${error.message}`);
+      }
+    }
+
+    current.setDate(current.getDate() + 1);
+  }
+  
+  login_log.push(...temp_login_log)
+}
+
+
+
+
+function getStartOfWeek() {
+  const date = new Date()
+  const day = date.getDay(),
+    diff = date.getDate() - day + (day == 0 ? -6 : 1);
+  return new Date(new Date(date.setDate(diff)).setHours(0, 0, 0, 0));
+}
+getTotalWeekHour()
