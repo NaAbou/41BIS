@@ -4,6 +4,7 @@ import os
 import asyncio
 import json
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 import requests
 
 # Configurazione del bot
@@ -15,7 +16,7 @@ async def fetch_players():
     data = requests.get("https://servers-frontend.fivem.net/api/servers/single/3vk49z").json().get("Data", "{}").get("players", "[]")
     messages = []
     
-    now = datetime.now(timezone.utc)
+    now = datetime.now(ZoneInfo("Europe/Rome"))
     day_str = now.strftime("%Y-%m-%d")
     hour_str = now.strftime("%H")
     
