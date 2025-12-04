@@ -449,9 +449,6 @@ async function getPlayers() {
     }
 
     console.log(`🎉 COMPLETATO! ${players.length} players caricati con successo`);
-
-    while(login_log.length === 0){ await sleep(100)}
-
     renderPlayers();
 
     return players;
@@ -571,6 +568,7 @@ async function getTotalWeekHour() {
   }
   
   login_log.push(...temp_login_log)
+  renderPlayers()
 }
 
 
