@@ -333,13 +333,13 @@ async function fetchWithRetry(url, maxRetries = 3, baseDelay = 1000) {
   }
 }
 
-async function fetchDiscordDataSequential(users) {
+// ✅ Carica un batch di player (membri o pinnati) - Tutti insieme
+async function loadPlayersBatch(users, onlineDiscordIDs, memberDiscordIDs, pinnedDiscordIDs, categoryName) {
   const WORKER_URL = 'https://discord-proxy.nadrabu3.workers.dev';
-  const results = [];
 
   for (let i = 0; i < users.length; i++) {
     const user = users[i];
-    console.log(`🔄 Carico player ${i + 1}/${users.length}...`);
+    console.log(`🔄 Carico ${categoryName} ${i + 1}/${users.length}...`);
 
     try {
       const discordIdentifier = user.identifiers.find(id => id.startsWith("discord:"));
@@ -362,11 +362,22 @@ async function fetchDiscordDataSequential(users) {
 
       console.log(`✅ "${discordUser.username}" caricato in ${elapsed}ms [Cache: ${cacheStatus}]`);
 
-      results.push({
-        user,
-        discordID,
-        steamID,
-        discordUser
+      const isMember = memberDiscordIDs.has(discordID);
+      const isPinned = pinnedDiscordIDs.has(discordID);
+
+      players.push({
+        id: players.length + 1,
+        gameId: user.id,
+        name: discordUser.username,
+        avatar: discordUser.avatar,
+        role: isMember ? 'member' : isPinned ? 'pinned' : 'player',
+        discordID: discordID,
+        steamHex: steamID,
+        lastLogin: '',
+        hoursThisWeek: 0,
+        status: onlineDiscordIDs.has(discordID) ? 'active' : 'inactive',
+        isPinned: isPinned,
+        isMember: isMember
       });
 
     } catch (error) {
@@ -374,9 +385,69 @@ async function fetchDiscordDataSequential(users) {
     }
   }
 
-  return results;
+  // Renderizza tutti i player di questa categoria insieme
+  renderPlayers();
+  console.log(`✅ ${categoryName} completati! (${users.length} caricati)`);
 }
 
+// ✅ Carica player base uno alla volta e renderizza SOLO ALLA FINE
+async function loadPlayersOneByOne(users, onlineDiscordIDs, memberDiscordIDs, pinnedDiscordIDs) {
+  const WORKER_URL = 'https://discord-proxy.nadrabu3.workers.dev';
+
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    console.log(`🔄 Carico player base ${i + 1}/${users.length}...`);
+
+    try {
+      const discordIdentifier = user.identifiers.find(id => id.startsWith("discord:"));
+      const steamIdentifier = user.identifiers.find(id => id.startsWith("steam:"));
+
+      if (!discordIdentifier) {
+        console.warn(`⚠️ Player "${user.name}" senza Discord - SKIP`);
+        continue;
+      }
+
+      const discordID = discordIdentifier.split(":")[1];
+      const steamID = steamIdentifier ? steamIdentifier.split(":")[1] : null;
+
+      const startTime = Date.now();
+      const response = await fetchWithRetry(`${WORKER_URL}?discordID=${discordID}`);
+      const discordUser = await response.json();
+
+      const elapsed = Date.now() - startTime;
+      const cacheStatus = response.headers.get('X-Cache') || 'UNKNOWN';
+
+      console.log(`✅ "${discordUser.username}" caricato in ${elapsed}ms [Cache: ${cacheStatus}]`);
+
+      const isMember = memberDiscordIDs.has(discordID);
+      const isPinned = pinnedDiscordIDs.has(discordID);
+
+      players.push({
+        id: players.length + 1,
+        gameId: user.id,
+        name: discordUser.username,
+        avatar: discordUser.avatar,
+        role: isMember ? 'member' : isPinned ? 'pinned' : 'player',
+        discordID: discordID,
+        steamHex: steamID,
+        lastLogin: '',
+        hoursThisWeek: 0,
+        status: onlineDiscordIDs.has(discordID) ? 'active' : 'inactive',
+        isPinned: isPinned,
+        isMember: isMember
+      });
+
+    } catch (error) {
+      console.error(`❌ Errore nel player ${user.name}:`, error.message);
+    }
+  }
+
+  // ✅ Renderizza SOLO quando tutti i player base sono stati caricati
+  renderPlayers();
+  console.log(`✅ PLAYER BASE completati! (${users.length} caricati)`);
+}
+
+// ✅ FUNZIONE PRINCIPALE CON CARICAMENTO PROGRESSIVO
 async function getPlayers() {
   try {
     console.log('🚀 Inizio caricamento players...');
@@ -397,23 +468,11 @@ async function getPlayers() {
 
     console.log(`🎮 ${allFiveMPlayers.length} players online su FiveM`);
 
-    const combinedPlayers = [...dataMembers, ...dataPinned, ...allFiveMPlayers];
-    const uniquePlayers = removeDuplicates(combinedPlayers);
-
-    console.log(`🔄 ${combinedPlayers.length} players totali → ${uniquePlayers.length} unici (${combinedPlayers.length - uniquePlayers.length} duplicati rimossi)`);
-
-    const discordDataResults = await fetchDiscordDataSequential(uniquePlayers);
+    players.length = 0;
 
     // Crea Set per lookup veloce
     const onlineDiscordIDs = new Set(
       allFiveMPlayers
-        .map(u => u.identifiers.find(id => id.startsWith("discord:")))
-        .filter(Boolean)
-        .map(id => id.split(":")[1])
-    );
-
-    const pinnedDiscordIDs = new Set(
-      dataPinned
         .map(u => u.identifiers.find(id => id.startsWith("discord:")))
         .filter(Boolean)
         .map(id => id.split(":")[1])
@@ -426,30 +485,36 @@ async function getPlayers() {
         .map(id => id.split(":")[1])
     );
 
-    players.length = 0;
+    const pinnedDiscordIDs = new Set(
+      dataPinned
+        .map(u => u.identifiers.find(id => id.startsWith("discord:")))
+        .filter(Boolean)
+        .map(id => id.split(":")[1])
+    );
 
-    for (const result of discordDataResults) {
-      const isMember = memberDiscordIDs.has(result.discordID)
-      const isPinned = pinnedDiscordIDs.has(result.discordID)
+    // ✅ FASE 1: Carica e mostra MEMBRI (tutti insieme)
+    console.log('🎖️ Caricamento MEMBRI...');
+    const uniqueMembers = removeDuplicates(dataMembers);
+    await loadPlayersBatch(uniqueMembers, onlineDiscordIDs, memberDiscordIDs, pinnedDiscordIDs, 'MEMBRI');
 
-      players.push({
-        id: players.length + 1,
-        gameId: result.user.id,
-        name: result.discordUser.username,
-        avatar: result.discordUser.avatar,
-        role: isMember ? 'member' : isPinned ? 'pinned' : 'player',
-        discordID: result.discordID,
-        steamHex: result.steamID,
-        lastLogin: '',
-        hoursThisWeek: 0,
-        status: onlineDiscordIDs.has(result.discordID) ? 'active' : 'inactive',
-        isPinned: isPinned,
-        isMember: isMember
-      });
-    }
+    // ✅ FASE 2: Carica e mostra PINNATI (tutti insieme)
+    console.log('📌 Caricamento PINNATI...');
+    const uniquePinned = removeDuplicates(dataPinned);
+    await loadPlayersBatch(uniquePinned, onlineDiscordIDs, memberDiscordIDs, pinnedDiscordIDs, 'PINNATI');
+
+    // ✅ FASE 3: Carica PLAYER BASE uno alla volta (con render ad ogni aggiunta)
+    console.log('👥 Caricamento PLAYER BASE...');
+    const basePlayers = allFiveMPlayers.filter(user => {
+      const discordIdentifier = user.identifiers?.find(id => id.startsWith("discord:"));
+      if (!discordIdentifier) return false;
+      const discordID = discordIdentifier.split(":")[1];
+      return !memberDiscordIDs.has(discordID) && !pinnedDiscordIDs.has(discordID);
+    });
+
+    const uniqueBasePlayers = removeDuplicates(basePlayers);
+    await loadPlayersOneByOne(uniqueBasePlayers, onlineDiscordIDs, memberDiscordIDs, pinnedDiscordIDs);
 
     console.log(`🎉 COMPLETATO! ${players.length} players caricati con successo`);
-    renderPlayers();
 
     return players;
 
