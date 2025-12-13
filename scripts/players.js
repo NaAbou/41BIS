@@ -461,8 +461,7 @@ async function getPlayers() {
     ]);
 
     console.log(`📌 ${dataPinned.length} pinnati, 🎖️ ${dataMembers.length} membri`);
-
-    const response = await fetch("https://servers-frontend.fivem.net/api/servers/single/3vk49z");
+    const response = await fetch("https://discord-proxy.nadrabu3.workers.dev?fivem=3vk49z");   
     const responseJSON = await response.json();
     allFiveMPlayers = responseJSON.Data.players;
 
