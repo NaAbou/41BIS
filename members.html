@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>41 BIS IMPERO — Members</title>
+  <link rel="stylesheet" href="style/members.css">
+</head>
+
+<body>
+
+  <!-- Sidebar (same as siblings) -->
+  <div class="sidebar">
+    <div class="logo">Home</div>
+    <div class="nav-item" onclick="location.href='index.html'">📊 Dashboard</div>
+    <div class="nav-item" onclick="location.href='deposito.html'">💰 Deposito</div>
+    <div class="nav-item" id="settingsNav">⚙️ Impostazioni</div>
+    <div class="nav-item" onclick="location.href='players.html'">👤 Players</div>
+    <div class="nav-item active" onclick="location.href='members.html'">🛡️ 41BIS Members</div>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="header">
+      <h1>41BIS Members</h1>
+      <div class="header-stats">
+        <div class="stat-chip">
+          <label>Totale</label>
+          <span id="statTotal">0</span>
+        </div>
+        <div class="stat-chip">
+          <label>Braccio</label>
+          <span id="statBraccio">0</span>
+        </div>
+        <div class="stat-chip">
+          <label>Informativa</label>
+          <span id="statInfo">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <input type="text" id="searchInput" placeholder="Cerca per nome o ID Discord...">
+      </div>
+      <button class="filter-btn active" data-filter="all">Tutti</button>
+      <button class="filter-btn" data-filter="braccio">🦾 Braccio</button>
+      <button class="filter-btn" data-filter="informativa">🔍 Informativa</button>
+      <button class="add-btn" id="addMemberBtn">+ Aggiungi membro</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>ID Discord</th>
+            <th>Ruolo</th>
+            <th>WL Givvata</th>
+            <th>Ultimo Login</th>
+          </tr>
+        </thead>
+        <tbody id="membersBody"></tbody>
+      </table>
+      <div class="member-count" id="memberCount"></div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <h3 id="modalTitle">Aggiungi Membro</h3>
+      <div class="modal-field">
+        <label>Nome</label>
+        <input type="text" id="mName" placeholder="Nome del membro">
+      </div>
+      <div class="modal-field">
+        <label>ID Discord</label>
+        <input type="text" id="mDiscordId" placeholder="es. 123456789012345678">
+      </div>
+      <div class="modal-field">
+        <label>Ruolo</label>
+        <select id="mRole">
+          <option value="braccio">Braccio</option>
+          <option value="informativa">Informativa</option>
+          <option value="both">Braccio + Informativa</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>WL Givvata</label>
+        <select id="mWl">
+          <option value="si">Sì</option>
+          <option value="no">No</option>
+          <option value="pending">In attesa</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Ultimo Login</label>
+        <input type="datetime-local" id="mLastLogin">
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel" id="modalCancel">Annulla</button>
+        <button class="modal-save" id="modalSave">Salva</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="scripts/members.js" defer></script>
+
+</body>
+
+</html>
