@@ -371,6 +371,33 @@ tbody td {
     color: var(--text);
 }
 
+/* Hours played */
+.hours-played {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    color: var(--text-mid);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.hours-played .hours-icon {
+    font-size: 14px;
+    opacity: 0.6;
+}
+
+.hours-played.high {
+    color: var(--green);
+}
+
+.hours-played.mid {
+    color: var(--gold);
+}
+
+.hours-played.low {
+    color: var(--text-dim);
+}
+
 /* Last login */
 .last-login {
     font-family: 'JetBrains Mono', monospace;
@@ -413,6 +440,45 @@ tbody td {
 
 .online-dot.gray {
     background: rgba(255, 255, 255, 0.25);
+}
+
+/* ═══════════════════════════════
+   ACTION BUTTONS
+   ═══════════════════════════════ */
+.action-btns {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-edit,
+.btn-delete {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--glass-border);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--text-dim);
+}
+
+.btn-edit:hover {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: rgba(212, 175, 55, 0.4);
+    color: var(--gold);
+    transform: scale(1.1);
+}
+
+.btn-delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: var(--red);
+    transform: scale(1.1);
 }
 
 /* Empty state */
@@ -565,6 +631,42 @@ tbody td {
     transform: scale(1.02);
 }
 
+/* Delete confirm modal */
+.delete-modal {
+    max-width: 420px;
+}
+
+.delete-text {
+    font-size: 15px;
+    color: var(--text-mid);
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+
+.delete-text strong {
+    color: var(--text);
+}
+
+.modal-delete-confirm {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #ef4444, #f87171);
+    border: none;
+    border-radius: 25px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.modal-delete-confirm:hover {
+    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.4);
+    transform: scale(1.02);
+}
+
 /* ═══════════════════════════════
    TOAST
    ═══════════════════════════════ */
@@ -593,7 +695,7 @@ tbody td {
 }
 
 /* ═══════════════════════════════
-   SCROLLBAR (matching siblings)
+   SCROLLBAR
    ═══════════════════════════════ */
 .table-wrap::-webkit-scrollbar,
 tbody::-webkit-scrollbar {
@@ -654,6 +756,6 @@ tbody::-webkit-scrollbar-thumb:hover {
     }
 
     table {
-        min-width: 750px;
+        min-width: 900px;
     }
 }

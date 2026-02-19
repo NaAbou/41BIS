@@ -5,16 +5,17 @@
 // ── Data Store ──
 let members = JSON.parse(localStorage.getItem('41bis_members') || '[]');
 let editingIndex = null;
+let deletingIndex = null;
 let currentFilter = 'all';
 
 // ── Demo data if empty ──
 if (members.length === 0) {
     members = [
-        { name: 'MOZIN', discordId: '384729103847291038', role: 'braccio', wl: 'si', lastLogin: '2025-02-17T22:30' },
-        { name: 'DarkViper', discordId: '529183746102938471', role: 'informativa', wl: 'no', lastLogin: '2025-02-18T01:15' },
-        { name: 'LupoNero', discordId: '738291047382910473', role: 'both', wl: 'pending', lastLogin: '2025-02-16T18:45' },
-        { name: 'ShadowX', discordId: '192837465019283746', role: 'braccio', wl: 'si', lastLogin: '2025-02-18T10:00' },
-        { name: 'Raptor', discordId: '647382910583729104', role: 'informativa', wl: 'si', lastLogin: '2025-02-15T14:20' },
+        { name: 'MOZIN', discordId: '384729103847291038', role: 'braccio', wl: 'si', hours: 342, lastLogin: '2025-02-17T22:30' },
+        { name: 'DarkViper', discordId: '529183746102938471', role: 'informativa', wl: 'no', hours: 58, lastLogin: '2025-02-18T01:15' },
+        { name: 'LupoNero', discordId: '738291047382910473', role: 'both', wl: 'pending', hours: 210, lastLogin: '2025-02-16T18:45' },
+        { name: 'ShadowX', discordId: '192837465019283746', role: 'braccio', wl: 'si', hours: 780, lastLogin: '2025-02-18T10:00' },
+        { name: 'Raptor', discordId: '647382910583729104', role: 'informativa', wl: 'si', hours: 15, lastLogin: '2025-02-15T14:20' },
     ];
     save();
 }
@@ -23,6 +24,7 @@ if (members.length === 0) {
 const tbody = document.getElementById('membersBody');
 const searchInput = document.getElementById('searchInput');
 const modal = document.getElementById('modal');
+const deleteModal = document.getElementById('deleteModal');
 const toast = document.getElementById('toast');
 const filterBtns = document.querySelectorAll('.filter-btn');
 
@@ -32,7 +34,6 @@ const filterBtns = document.querySelectorAll('.filter-btn');
 function render() {
     const query = searchInput.value.toLowerCase().trim();
 
-    // Apply filters
     const filtered = members.filter(m => {
         if (currentFilter === 'braccio' && m.role !== 'braccio' && m.role !== 'both') return false;
         if (currentFilter === 'informativa' && m.role !== 'informativa' && m.role !== 'both') return false;
@@ -40,15 +41,15 @@ function render() {
         return true;
     });
 
-    // Update stats
+    // Stats
     document.getElementById('statTotal').textContent = members.length;
     document.getElementById('statBraccio').textContent = members.filter(m => m.role === 'braccio' || m.role === 'both').length;
     document.getElementById('statInfo').textContent = members.filter(m => m.role === 'informativa' || m.role === 'both').length;
 
-    // Empty state
+    // Empty
     if (filtered.length === 0) {
         tbody.innerHTML = `
-      <tr><td colspan="5">
+      <tr><td colspan="7">
         <div class="empty-state">
           <p>🔍</p>
           <p>Nessun membro trovato</p>
@@ -64,9 +65,10 @@ function render() {
         const login = getLoginStatus(m.lastLogin);
         const roleLabel = m.role === 'both' ? 'Braccio + Info' : capitalize(m.role);
         const roleClass = m.role;
+        const hrs = getHoursDisplay(m.hours);
 
         return `
-      <tr ondblclick="editMember(${realIndex})" title="Doppio click per modificare">
+      <tr>
         <td><span class="member-name">${esc(m.name)}</span></td>
         <td><span class="discord-id" onclick="copyId('${m.discordId}')" title="Clicca per copiare">${m.discordId}</span></td>
         <td><span class="role-badge ${roleClass}">${roleLabel}</span></td>
@@ -78,10 +80,22 @@ function render() {
           </select>
         </td>
         <td>
+          <span class="hours-played ${hrs.cls}">
+            <span class="hours-icon">🕐</span>
+            ${hrs.text}
+          </span>
+        </td>
+        <td>
           <span class="last-login ${login.cls}">
             <span class="online-dot ${login.dot}"></span>
             ${login.text}
           </span>
+        </td>
+        <td>
+          <div class="action-btns">
+            <button class="btn-edit" onclick="editMember(${realIndex})" title="Modifica">✏️</button>
+            <button class="btn-delete" onclick="confirmDelete(${realIndex})" title="Rimuovi">🗑️</button>
+          </div>
         </td>
       </tr>`;
     }).join('');
@@ -94,17 +108,24 @@ function render() {
 // ══════════════════════════════════════
 function getLoginStatus(dateStr) {
     if (!dateStr) return { text: 'Mai', cls: 'offline', dot: 'gray' };
-
     const d = new Date(dateStr);
     const now = new Date();
     const diffH = (now - d) / 3600000;
-
     const formatted = d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })
         + ' ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
 
     if (diffH < 1) return { text: 'Online', cls: 'online', dot: 'green' };
     if (diffH < 24) return { text: formatted, cls: 'recent', dot: 'yellow' };
     return { text: formatted, cls: 'offline', dot: 'gray' };
+}
+
+function getHoursDisplay(hours) {
+    const h = parseFloat(hours) || 0;
+    const text = h > 0 ? h + 'h' : '—';
+    let cls = 'low';
+    if (h >= 200) cls = 'high';
+    else if (h >= 50) cls = 'mid';
+    return { text, cls };
 }
 
 function esc(s) {
@@ -141,6 +162,7 @@ function copyId(id) {
     showToast('ID Discord copiato!');
 }
 
+// ── Edit ──
 function editMember(index) {
     editingIndex = index;
     const m = members[index];
@@ -149,8 +171,27 @@ function editMember(index) {
     document.getElementById('mDiscordId').value = m.discordId;
     document.getElementById('mRole').value = m.role;
     document.getElementById('mWl').value = m.wl;
+    document.getElementById('mHours').value = m.hours || '';
     document.getElementById('mLastLogin').value = m.lastLogin || '';
     modal.classList.add('open');
+}
+
+// ── Delete ──
+function confirmDelete(index) {
+    deletingIndex = index;
+    document.getElementById('deleteName').textContent = members[index].name;
+    deleteModal.classList.add('open');
+}
+
+function deleteMember() {
+    if (deletingIndex === null) return;
+    const name = members[deletingIndex].name;
+    members.splice(deletingIndex, 1);
+    deletingIndex = null;
+    save();
+    deleteModal.classList.remove('open');
+    render();
+    showToast(`🗑️ ${name} rimosso`);
 }
 
 // ══════════════════════════════════════
@@ -168,7 +209,7 @@ filterBtns.forEach(btn => {
 searchInput.addEventListener('input', render);
 
 // ══════════════════════════════════════
-//  MODAL
+//  MODAL — Add/Edit
 // ══════════════════════════════════════
 document.getElementById('addMemberBtn').addEventListener('click', () => {
     editingIndex = null;
@@ -177,6 +218,7 @@ document.getElementById('addMemberBtn').addEventListener('click', () => {
     document.getElementById('mDiscordId').value = '';
     document.getElementById('mRole').value = 'braccio';
     document.getElementById('mWl').value = 'no';
+    document.getElementById('mHours').value = '';
     document.getElementById('mLastLogin').value = '';
     modal.classList.add('open');
 });
@@ -189,6 +231,7 @@ document.getElementById('modalSave').addEventListener('click', () => {
     const discordId = document.getElementById('mDiscordId').value.trim();
     const role = document.getElementById('mRole').value;
     const wl = document.getElementById('mWl').value;
+    const hours = parseFloat(document.getElementById('mHours').value) || 0;
     const lastLogin = document.getElementById('mLastLogin').value;
 
     if (!name || !discordId) {
@@ -196,7 +239,7 @@ document.getElementById('modalSave').addEventListener('click', () => {
         return;
     }
 
-    const member = { name, discordId, role, wl, lastLogin };
+    const member = { name, discordId, role, wl, hours, lastLogin };
 
     if (editingIndex !== null) {
         members[editingIndex] = member;
@@ -212,18 +255,25 @@ document.getElementById('modalSave').addEventListener('click', () => {
 });
 
 // ══════════════════════════════════════
+//  MODAL — Delete confirm
+// ══════════════════════════════════════
+document.getElementById('deleteConfirmBtn').addEventListener('click', deleteMember);
+document.getElementById('deleteCancelBtn').addEventListener('click', () => {
+    deletingIndex = null;
+    deleteModal.classList.remove('open');
+});
+deleteModal.addEventListener('click', e => {
+    if (e.target === deleteModal) {
+        deletingIndex = null;
+        deleteModal.classList.remove('open');
+    }
+});
+
+// ══════════════════════════════════════
 //  DISCORD DATA LOADER API
 // ══════════════════════════════════════
-/**
- * Carica membri da dati Discord.
- * Passa un array di oggetti:
- *   [{ name, discordId, roles: ['braccio','informativa',...], lastLogin, wl }]
- *
- * Solo i membri con ruolo 'braccio' o 'informativa' vengono aggiunti.
- */
 window.loadDiscordMembers = function (data) {
     const validRoles = ['braccio', 'informativa'];
-
     const filtered = data.filter(u =>
         u.roles && u.roles.some(r => validRoles.includes(r.toLowerCase()))
     );
@@ -231,7 +281,6 @@ window.loadDiscordMembers = function (data) {
     members = filtered.map(u => {
         const hasBraccio = u.roles.some(r => r.toLowerCase() === 'braccio');
         const hasInfo = u.roles.some(r => r.toLowerCase() === 'informativa');
-
         let role = 'braccio';
         if (hasBraccio && hasInfo) role = 'both';
         else if (hasInfo) role = 'informativa';
@@ -241,6 +290,7 @@ window.loadDiscordMembers = function (data) {
             discordId: u.discordId || u.id || '',
             role,
             wl: u.wl || 'no',
+            hours: parseFloat(u.hours) || 0,
             lastLogin: u.lastLogin || ''
         };
     });
@@ -250,10 +300,14 @@ window.loadDiscordMembers = function (data) {
     showToast(`✓ Caricati ${members.length} membri da Discord`);
 };
 
-// ── Keyboard shortcut: Escape chiude modal ──
+// ── Keyboard: Escape chiude modali ──
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && modal.classList.contains('open')) {
-        modal.classList.remove('open');
+    if (e.key === 'Escape') {
+        if (modal.classList.contains('open')) modal.classList.remove('open');
+        if (deleteModal.classList.contains('open')) {
+            deletingIndex = null;
+            deleteModal.classList.remove('open');
+        }
     }
 });
 

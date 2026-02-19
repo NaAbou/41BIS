@@ -25,14 +25,14 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install discord.py
-          pip install requests
+          pip install discord.py requests firebase-admin
 
       # 4️⃣ Esegui lo script bot
       - name: Run Discord bot
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
         run: python bot.py
 
       # 5️⃣ (Opzionale) Commit dei messaggi nel repo
@@ -45,4 +45,3 @@ jobs:
           git add -f login_log/.
           git commit -m "🕒 Update messages.json [$(date -u +'%Y-%m-%d %H:%M:%S UTC')]" || echo "No changes to commit"
           git push -f
-          
