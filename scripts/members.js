@@ -1,24 +1,17 @@
-// ══════════════════════════════════════
-//  41 BIS IMPERO — Members Controller
-// ══════════════════════════════════════
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js';
+import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
+import { auth } from "./firebase-config.js";
+import { db } from "./firebase-config.js";
 
 // ── Data Store ──
-let members = JSON.parse(localStorage.getItem('41bis_members') || '[]');
+let members = [];
 let editingIndex = null;
 let deletingIndex = null;
 let currentFilter = 'all';
 
-// ── Demo data if empty ──
-if (members.length === 0) {
-    members = [
-        { name: 'MOZIN', discordId: '384729103847291038', role: 'braccio', wl: 'si', hours: 342, lastLogin: '2025-02-17T22:30' },
-        { name: 'DarkViper', discordId: '529183746102938471', role: 'informativa', wl: 'no', hours: 58, lastLogin: '2025-02-18T01:15' },
-        { name: 'LupoNero', discordId: '738291047382910473', role: 'both', wl: 'pending', hours: 210, lastLogin: '2025-02-16T18:45' },
-        { name: 'ShadowX', discordId: '192837465019283746', role: 'braccio', wl: 'si', hours: 780, lastLogin: '2025-02-18T10:00' },
-        { name: 'Raptor', discordId: '647382910583729104', role: 'informativa', wl: 'si', hours: 15, lastLogin: '2025-02-15T14:20' },
-    ];
-    save();
-}
+// ── Ruoli mappati ──
+const BRACCIO_ROLES = ['braccio', 'gestore braccio'];
+const INFORMATIVA_ROLES = ['informativa', 'gestore informativa', 'ceo', 'coceo'];
 
 // ── DOM refs ──
 const tbody = document.getElementById('membersBody');
@@ -29,22 +22,67 @@ const toast = document.getElementById('toast');
 const filterBtns = document.querySelectorAll('.filter-btn');
 
 // ══════════════════════════════════════
+//  ROLE DETECTION
+// ══════════════════════════════════════
+function detectRole(roles) {
+    const lower = (roles || []).map(r => r.toLowerCase());
+
+    const isCeo = lower.includes('ceo');
+    const isCoceo = lower.includes('coceo');
+    const isGestoreBraccio = lower.includes('gestore braccio');
+    const isGestoreInfo = lower.includes('gestore informativa');
+    const hasBraccio = lower.includes('braccio');
+    const hasInfo = lower.includes('informativa');
+
+    if (isCeo) return 'ceo';
+    if (isCoceo) return 'coceo';
+    if (isGestoreBraccio && isGestoreInfo) return 'gestore_both';
+    if (isGestoreBraccio) return 'gestore_braccio';
+    if (isGestoreInfo) return 'gestore_informativa';
+    if (hasBraccio && hasInfo) return 'both';
+    if (hasBraccio) return 'braccio';
+    if (hasInfo) return 'informativa';
+    return 'ospite';
+}
+
+function getRoleLabel(role) {
+    const labels = {
+        'ceo': 'CEO',
+        'coceo': 'Co-CEO',
+        'gestore_braccio': 'Gestore Braccio',
+        'gestore_informativa': 'Gestore Info',
+        'gestore_both': 'Gestore Braccio + Info',
+        'both': 'Braccio + Info',
+        'braccio': 'Braccio',
+        'informativa': 'Informativa',
+        'ospite': 'Ospite'
+    };
+    return labels[role] || role;
+}
+
+// ══════════════════════════════════════
 //  RENDER
 // ══════════════════════════════════════
 function render() {
     const query = searchInput.value.toLowerCase().trim();
 
     const filtered = members.filter(m => {
-        if (currentFilter === 'braccio' && m.role !== 'braccio' && m.role !== 'both') return false;
-        if (currentFilter === 'informativa' && m.role !== 'informativa' && m.role !== 'both') return false;
+        if (currentFilter === 'braccio' && !['braccio', 'both', 'gestore_braccio', 'gestore_both'].includes(m.role)) return false;
+        if (currentFilter === 'informativa' && !['informativa', 'both', 'gestore_informativa', 'gestore_both', 'ceo', 'coceo'].includes(m.role)) return false;
+        if (currentFilter === 'gestori' && !['gestore_braccio', 'gestore_informativa', 'gestore_both', 'ceo', 'coceo'].includes(m.role)) return false;
+        if (currentFilter === 'ospiti' && m.role !== 'ospite') return false;
         if (query && !m.name.toLowerCase().includes(query) && !m.discordId.includes(query)) return false;
         return true;
     });
 
     // Stats
     document.getElementById('statTotal').textContent = members.length;
-    document.getElementById('statBraccio').textContent = members.filter(m => m.role === 'braccio' || m.role === 'both').length;
-    document.getElementById('statInfo').textContent = members.filter(m => m.role === 'informativa' || m.role === 'both').length;
+    document.getElementById('statBraccio').textContent = members.filter(m => ['braccio', 'both', 'gestore_braccio', 'gestore_both'].includes(m.role)).length;
+    document.getElementById('statInfo').textContent = members.filter(m => ['informativa', 'both', 'gestore_informativa', 'gestore_both', 'ceo', 'coceo'].includes(m.role)).length;
+    const statOspiti = document.getElementById('statOspiti');
+    if (statOspiti) statOspiti.textContent = members.filter(m => m.role === 'ospite').length;
+    const statGestori = document.getElementById('statGestori');
+    if (statGestori) statGestori.textContent = members.filter(m => ['gestore_braccio', 'gestore_informativa', 'gestore_both', 'ceo', 'coceo'].includes(m.role)).length;
 
     // Empty
     if (filtered.length === 0) {
@@ -63,12 +101,13 @@ function render() {
     tbody.innerHTML = filtered.map(m => {
         const realIndex = members.indexOf(m);
         const login = getLoginStatus(m.lastLogin);
-        const roleLabel = m.role === 'both' ? 'Braccio + Info' : capitalize(m.role);
+        const roleLabel = getRoleLabel(m.role);
         const roleClass = m.role;
         const hrs = getHoursDisplay(m.hours);
+        const rowClass = m.role === 'ospite' ? 'row-ospite' : '';
 
         return `
-      <tr>
+      <tr class="${rowClass}">
         <td><span class="member-name">${esc(m.name)}</span></td>
         <td><span class="discord-id" onclick="copyId('${m.discordId}')" title="Clicca per copiare">${m.discordId}</span></td>
         <td><span class="role-badge ${roleClass}">${roleLabel}</span></td>
@@ -134,12 +173,13 @@ function esc(s) {
     return d.innerHTML;
 }
 
-function capitalize(s) {
-    return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function save() {
-    localStorage.setItem('41bis_members', JSON.stringify(members));
+async function save() {
+    const batch = writeBatch(db);
+    members.forEach(m => {
+        const ref = doc(db, 'members', m.discordId);
+        batch.set(ref, m, { merge: true });
+    });
+    await batch.commit();
 }
 
 function showToast(msg) {
@@ -151,19 +191,18 @@ function showToast(msg) {
 // ══════════════════════════════════════
 //  ACTIONS
 // ══════════════════════════════════════
-function updateWl(index, value) {
+window.updateWl = async function (index, value) {
     members[index].wl = value;
-    save();
+    await updateDoc(doc(db, 'members', members[index].discordId), { wl: value });
     showToast(`WL aggiornata per ${members[index].name}`);
-}
+};
 
-function copyId(id) {
+window.copyId = function (id) {
     navigator.clipboard.writeText(id);
     showToast('ID Discord copiato!');
-}
+};
 
-// ── Edit ──
-function editMember(index) {
+window.editMember = function (index) {
     editingIndex = index;
     const m = members[index];
     document.getElementById('modalTitle').textContent = 'Modifica Membro';
@@ -174,21 +213,23 @@ function editMember(index) {
     document.getElementById('mHours').value = m.hours || '';
     document.getElementById('mLastLogin').value = m.lastLogin || '';
     modal.classList.add('open');
-}
+};
 
-// ── Delete ──
-function confirmDelete(index) {
+window.confirmDelete = function (index) {
     deletingIndex = index;
     document.getElementById('deleteName').textContent = members[index].name;
     deleteModal.classList.add('open');
-}
+};
 
-function deleteMember() {
+async function deleteMember() {
     if (deletingIndex === null) return;
-    const name = members[deletingIndex].name;
+    const m = members[deletingIndex];
+    const name = m.name;
+
+    await deleteDoc(doc(db, 'members', m.discordId));
+
     members.splice(deletingIndex, 1);
     deletingIndex = null;
-    save();
     deleteModal.classList.remove('open');
     render();
     showToast(`🗑️ ${name} rimosso`);
@@ -226,7 +267,7 @@ document.getElementById('addMemberBtn').addEventListener('click', () => {
 document.getElementById('modalCancel').addEventListener('click', () => modal.classList.remove('open'));
 modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
 
-document.getElementById('modalSave').addEventListener('click', () => {
+document.getElementById('modalSave').addEventListener('click', async () => {
     const name = document.getElementById('mName').value.trim();
     const discordId = document.getElementById('mDiscordId').value.trim();
     const role = document.getElementById('mRole').value;
@@ -249,7 +290,8 @@ document.getElementById('modalSave').addEventListener('click', () => {
         showToast(`✓ ${name} aggiunto`);
     }
 
-    save();
+    await setDoc(doc(db, 'members', discordId), member, { merge: true });
+
     modal.classList.remove('open');
     render();
 });
@@ -269,37 +311,6 @@ deleteModal.addEventListener('click', e => {
     }
 });
 
-// ══════════════════════════════════════
-//  DISCORD DATA LOADER API
-// ══════════════════════════════════════
-window.loadDiscordMembers = function (data) {
-    const validRoles = ['braccio', 'informativa'];
-    const filtered = data.filter(u =>
-        u.roles && u.roles.some(r => validRoles.includes(r.toLowerCase()))
-    );
-
-    members = filtered.map(u => {
-        const hasBraccio = u.roles.some(r => r.toLowerCase() === 'braccio');
-        const hasInfo = u.roles.some(r => r.toLowerCase() === 'informativa');
-        let role = 'braccio';
-        if (hasBraccio && hasInfo) role = 'both';
-        else if (hasInfo) role = 'informativa';
-
-        return {
-            name: u.name || u.username || 'Sconosciuto',
-            discordId: u.discordId || u.id || '',
-            role,
-            wl: u.wl || 'no',
-            hours: parseFloat(u.hours) || 0,
-            lastLogin: u.lastLogin || ''
-        };
-    });
-
-    save();
-    render();
-    showToast(`✓ Caricati ${members.length} membri da Discord`);
-};
-
 // ── Keyboard: Escape chiude modali ──
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
@@ -312,6 +323,36 @@ document.addEventListener('keydown', e => {
 });
 
 // ══════════════════════════════════════
+//  LOAD FROM FIRESTORE
+// ══════════════════════════════════════
+async function loadMembers() {
+    try {
+        const snapshot = await getDocs(collection(db, 'members'));
+        members = snapshot.docs.map(d => {
+            const data = d.data();
+            const role = detectRole(data.roles);
+
+            return {
+                name: data.name || data.username || 'Sconosciuto',
+                discordId: data.discordId || d.id,
+                username: data.username || '',
+                role,
+                roles: data.roles || [],
+                wl: data.wl || 'no',
+                hours: parseFloat(data.hours) || 0,
+                lastLogin: data.lastLogin || ''
+            };
+        });
+
+        render();
+        showToast(`✓ Caricati ${members.length} membri da Firestore`);
+    } catch (err) {
+        console.error('Errore Firestore:', err);
+        showToast('❌ Errore nel caricamento da Firestore');
+    }
+}
+
+// ══════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════
-render();
+loadMembers();

@@ -232,7 +232,7 @@ body {
 }
 
 /* ═══════════════════════════════
-   TABLE
+   TABLE — SCROLLABILE
    ═══════════════════════════════ */
 .table-wrap {
     background: var(--glass);
@@ -241,6 +241,8 @@ body {
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    max-height: 65vh;
+    overflow-y: auto;
 }
 
 table {
@@ -256,10 +258,14 @@ thead th {
     letter-spacing: 1.2px;
     text-transform: uppercase;
     color: var(--text-dim);
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(15, 32, 39, 0.95);
+    backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--glass-border);
     user-select: none;
     cursor: pointer;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 thead th:hover {
@@ -311,7 +317,9 @@ tbody td {
     border-color: rgba(212, 175, 55, 0.3);
 }
 
-/* Role badges */
+/* ═══════════════════════════════
+   ROLE BADGES
+   ═══════════════════════════════ */
 .role-badge {
     display: inline-flex;
     align-items: center;
@@ -342,7 +350,42 @@ tbody td {
     border-color: rgba(167, 139, 250, 0.3);
 }
 
-/* WL Select */
+/* ── Gestori (rosso) ── */
+.role-badge.gestore_braccio,
+.role-badge.gestore_informativa,
+.role-badge.gestore_both {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--red);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* ── CEO / Co-CEO (rosso intenso) ── */
+.role-badge.ceo,
+.role-badge.coceo {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.4);
+    font-weight: 600;
+}
+
+/* ── Ospiti (dimmed) ── */
+.role-badge.ospite {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-dim);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.row-ospite {
+    opacity: 0.55;
+}
+
+.row-ospite:hover {
+    opacity: 0.8;
+}
+
+/* ═══════════════════════════════
+   WL SELECT
+   ═══════════════════════════════ */
 .wl-select {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
@@ -371,7 +414,9 @@ tbody td {
     color: var(--text);
 }
 
-/* Hours played */
+/* ═══════════════════════════════
+   HOURS PLAYED
+   ═══════════════════════════════ */
 .hours-played {
     font-family: 'JetBrains Mono', monospace;
     font-size: 15px;
@@ -398,7 +443,9 @@ tbody td {
     color: var(--text-dim);
 }
 
-/* Last login */
+/* ═══════════════════════════════
+   LAST LOGIN
+   ═══════════════════════════════ */
 .last-login {
     font-family: 'JetBrains Mono', monospace;
     font-size: 14px;
@@ -481,7 +528,9 @@ tbody td {
     transform: scale(1.1);
 }
 
-/* Empty state */
+/* ═══════════════════════════════
+   EMPTY STATE & MEMBER COUNT
+   ═══════════════════════════════ */
 .empty-state {
     text-align: center;
     padding: 80px 20px;
@@ -697,25 +746,21 @@ tbody td {
 /* ═══════════════════════════════
    SCROLLBAR
    ═══════════════════════════════ */
-.table-wrap::-webkit-scrollbar,
-tbody::-webkit-scrollbar {
+.table-wrap::-webkit-scrollbar {
     width: 8px;
 }
 
-.table-wrap::-webkit-scrollbar-track,
-tbody::-webkit-scrollbar-track {
+.table-wrap::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
 }
 
-.table-wrap::-webkit-scrollbar-thumb,
-tbody::-webkit-scrollbar-thumb {
+.table-wrap::-webkit-scrollbar-thumb {
     background: rgba(212, 175, 55, 0.5);
     border-radius: 10px;
 }
 
-.table-wrap::-webkit-scrollbar-thumb:hover,
-tbody::-webkit-scrollbar-thumb:hover {
+.table-wrap::-webkit-scrollbar-thumb:hover {
     background: rgba(212, 175, 55, 0.8);
 }
 
@@ -753,6 +798,7 @@ tbody::-webkit-scrollbar-thumb:hover {
 
     .table-wrap {
         overflow-x: auto;
+        max-height: 55vh;
     }
 
     table {
