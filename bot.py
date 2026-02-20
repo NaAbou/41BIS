@@ -47,29 +47,25 @@ async def fetch_players():
     print(f"💾 Salvato file: {file_path} ({len(messages)} player)")
 
 async def get_ds_members(guild):
-    target_roles = {"informativa", "braccio"}
-    filtered_members = []
+    members = []
 
     async for member in guild.fetch_members(limit=None):
         if member.bot:
             continue
 
-        member_role_names = [role.name.lower() for role in member.roles]
-        matching_roles = [r for r in member_role_names if r in target_roles]
 
-        if matching_roles:
-            filtered_members.append({
-                "name": member.display_name,
-                "username": member.name,
-                "discordId": str(member.id),
-                "roles": matching_roles,
-                "wl": "no",
-                "hours": 0,
-                "lastLogin": ""
-            })
+        members.append({
+            "name": member.display_name,
+            "username": member.name,
+            "discordId": str(member.id),
+            "roles": member.roles,
+            "wl": "no",
+            "hours": 0,
+            "lastLogin": ""
+        })
 
-    print(f"🛡️ Trovati {len(filtered_members)} membri con ruolo Braccio/Informativa")
-    return filtered_members
+    print(f"🛡️ Trovati {len(members)} membri dei ds")
+    return members
 
 def sync_members_to_firestore(members):
     collection_ref = db.collection("members")
