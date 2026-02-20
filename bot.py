@@ -58,7 +58,7 @@ async def get_ds_members(guild):
             "name": member.display_name,
             "username": member.name,
             "discordId": str(member.id),
-            "roles": member.roles,
+            "roles": [role.name for role in member.roles if role.name != "@everyone"],
             "wl": "no",
             "hours": 0,
             "lastLogin": ""
