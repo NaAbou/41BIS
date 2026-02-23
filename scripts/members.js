@@ -108,7 +108,7 @@ function render() {
       <tr class="${m.role === 'ospite' ? 'row-ospite' : ''}">
         <td><span class="member-name">${esc(m.name)}</span></td>
         <td><span class="discord-id" onclick="copyId('${m.discordId}')" title="Clicca per copiare">${m.discordId}</span></td>
-        <td><span class="role-badge ${m.role}">${ROLE_LABELS[m.role] || m.role}</span></td>
+        <td><span class="role-badge ${m.role ? m.role : 'ospite'}">${(ROLE_LABELS[m.role] || m.role) ? ROLE_LABELS[m.role] || m.role : '-'}</span></td>
         <td>
           <select class="wl-select" onchange="updateWl(${i}, this.value)">
             <option value="si" ${m.wl === 'si' ? 'selected' : ''}>✓ Sì</option>
@@ -142,6 +142,7 @@ window.editMember = index => {
     const m = members[index];
     document.getElementById('modalTitle').textContent = 'Modifica Membro';
     document.getElementById('mName').value = m.name;
+    document.getElementById('mSteamName').value = m.steamName || '';
     document.getElementById('mDiscordId').value = m.discordId;
     document.getElementById('mRole').value = m.role;
     document.getElementById('mWl').value = m.wl;
@@ -181,7 +182,7 @@ searchInput.addEventListener('input', render);
 document.getElementById('addMemberBtn').addEventListener('click', () => {
     editingIndex = null;
     document.getElementById('modalTitle').textContent = 'Aggiungi Membro';
-    ['mName', 'mDiscordId', 'mHours', 'mLastLogin'].forEach(id => document.getElementById(id).value = '');
+    ['mName', 'mSteamName', 'mDiscordId', 'mHours', 'mLastLogin'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('mRole').value = 'braccio';
     document.getElementById('mWl').value = 'no';
     modal.classList.add('open');
@@ -193,11 +194,12 @@ modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
 document.getElementById('modalSave').addEventListener('click', async () => {
     const name = document.getElementById('mName').value.trim();
+    const steamName = document.getElementById('mSteamName').value.trim();
     const discordId = document.getElementById('mDiscordId').value.trim();
     if (!name || !discordId) return showToast('⚠️ Nome e ID Discord sono obbligatori');
 
     const member = {
-        name, discordId,
+        name, steamName, discordId,
         role: document.getElementById('mRole').value,
         wl: document.getElementById('mWl').value,
         hours: parseFloat(document.getElementById('mHours').value) || 0,

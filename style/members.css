@@ -38,18 +38,12 @@ body {
    ═══════════════════════════════ */
 .sidebar {
     width: 200px;
-    min-width: 200px;
-    min-height: 100vh;
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(10px);
-    border-right: 1px solid var(--glass-border);
     padding: 30px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    position: sticky;
-    top: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
+
 
 .logo {
     font-size: 24px;
@@ -61,26 +55,20 @@ body {
 
 .nav-item {
     padding: 12px 15px;
+    margin-bottom: 10px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 400;
-    color: var(--text-mid);
     transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    font-size: 14px;
 }
 
 .nav-item:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: var(--text);
 }
 
 .nav-item.active {
     background: rgba(212, 175, 55, 0.2);
-    border-left: 3px solid var(--gold);
-    color: var(--text);
+    border-left: 3px solid #d4af37;
 }
 
 /* ═══════════════════════════════

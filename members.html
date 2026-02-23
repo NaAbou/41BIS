@@ -15,7 +15,7 @@
   <!-- Sidebar (same as siblings) -->
   <div class="sidebar">
     <div class="logo">Home</div>
-    <div class="nav-item" onclick="location.href='index.html'">📊 Dashboard</div>
+    <div class="nav-item" onclick="location.href='home.html'">📊 Dashboard</div>
     <div class="nav-item" onclick="location.href='deposito.html'">💰 Deposito</div>
     <div class="nav-item" id="settingsNav">⚙️ Impostazioni</div>
     <div class="nav-item" onclick="location.href='players.html'">👤 Players</div>
@@ -25,7 +25,10 @@
   <!-- Main -->
   <div class="main-content">
     <div class="header">
-      <h1>Membri</h1>
+      <div>
+        <h1>Membri</h1>
+        <p style="color: #d4af37;">Gestisci e visualizza tutti i fazionati</p>
+      </div>
       <div class="header-stats">
         <div class="stat-chip">
           <label>Totale</label>
@@ -84,6 +87,10 @@
       <div class="modal-field">
         <label>Nome</label>
         <input type="text" id="mName" placeholder="Nome del membro">
+      </div>
+      <div class="modal-field">
+        <label>Nome Steam</label>
+        <input type="text" id="mSteamName" placeholder="Nome Steam del membro">
       </div>
       <div class="modal-field">
         <label>ID Discord</label>
