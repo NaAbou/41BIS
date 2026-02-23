@@ -143,9 +143,23 @@ async def on_ready():
         
     await fetch_players()
     
-    for guild in bot.guilds: 
+    merged = {}  # discordId -> member dict
+
+    for guild in bot.guilds:
         members = await get_ds_members(guild)
-        sync_members_to_firestore(members)
+        for m in members:
+            did = m["discordId"]
+            if did in merged:
+                existing = set(merged[did]["roles"])
+                existing.update(m["roles"])
+                merged[did]["roles"] = list(existing)
+                merged[did]["name"] = m["name"]
+                merged[did]["username"] = m["username"]
+            else:
+                merged[did] = m
+
+    print(f"🔗 Membri unici dopo merge: {len(merged)}")
+    sync_members_to_firestore(list(merged.values()))
 
     await asyncio.sleep(5)
     await bot.close()
