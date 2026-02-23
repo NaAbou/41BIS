@@ -53,7 +53,6 @@ async def get_ds_members(guild):
         if member.bot:
             continue
 
-
         members.append({
             "name": member.display_name,
             "username": member.name,
@@ -144,12 +143,9 @@ async def on_ready():
         
     await fetch_players()
     
-    guild = bot.guilds[0] if bot.guilds else None
-    if guild:
+    for guild in bot.guilds: 
         members = await get_ds_members(guild)
         sync_members_to_firestore(members)
-    else:
-        print("❌ Nessun guild trovato!")
 
     await asyncio.sleep(5)
     await bot.close()
