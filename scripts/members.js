@@ -1,4 +1,5 @@
 import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
+import { getMemberWeeklyHours } from './utils.js';
 import { auth, db } from "./firebase-config.js";
 
 // ── Data ──
@@ -21,6 +22,8 @@ const filterBtns = document.querySelectorAll('.filter-btn');
 const esc = s => Object.assign(document.createElement('div'), { textContent: s }).innerHTML;
 const lower = arr => (arr || []).map(r => r.toLowerCase());
 const hasAny = (roles, list) => lower(roles).some(r => list.includes(r));
+
+const logs = await getMemberWeeklyHours()
 
 function showToast(msg) {
     toast.textContent = msg;
@@ -116,8 +119,12 @@ function render() {
             <option value="pending" ${m.wl === 'pending' ? 'selected' : ''}>⏳ In attesa</option>
           </select>
         </td>
-        <td><span class="hours-played ${hrs.cls}"><span class="hours-icon">🕐</span>${hrs.text}</span></td>
-        <td><span class="last-login ${login.cls}"><span class="online-dot ${login.dot}"></span>${login.text}</span></td>
+        <td><span class="hours-played ${hrs.cls}"><span class="hours-icon">🕐</span>${logs.filter(entry => (entry.steamName || entry.discordID) === m.steamName).length /* - */}</span></td>
+        <td><span class="last-login ${login.cls}"><span class="online-dot ${login.dot}"></span>${logs
+                .filter(entry => (entry.steamName || entry.discordID) === m.steamName)
+                .reduce((max, entry) => Math.max(max, entry.timestamp), 0) ? new Date(logs
+                    .filter(entry => (entry.steamName || entry.discordID) === m.name)
+                    .reduce((max, entry) => Math.max(max, entry.timestamp), 0) * 1000) : 'Mai'}</span></td>
         <td><div class="action-btns">
           <button class="btn-edit" onclick="editMember(${i})" title="Modifica">✏️</button>
           <button class="btn-delete" onclick="confirmDelete(${i})" title="Rimuovi">🗑️</button>

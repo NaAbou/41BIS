@@ -37,7 +37,7 @@ async def fetch_players():
 
     for elem in data:
         messages.append({
-            "discordID": elem.get("name", ""),
+            "steamName": elem.get("name", ""),
             "timestamp": now.timestamp()
         })
                 
