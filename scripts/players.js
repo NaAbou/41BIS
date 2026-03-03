@@ -68,7 +68,7 @@ function createPlayerCard(player) {
   return `
     <div class="player-card">
       <div class="card-header ${player.role} ${statusText}">
-        <div class="id-badge">ID: ${player.gameId || '—'}</div>
+        <div class="id-badge">ID: ${player.status === 'active' ? (player.id || '—') : '—'}</div>
 
         <button class="pin-btn ${player.isPinned ? 'pinned' : ''}"
                 onclick="addDBPlayer('${player.name}','pinned')"
@@ -90,10 +90,10 @@ function createPlayerCard(player) {
         <div class="stats-grid">
           <div class="stat-item">
             <div class="stat-label">Ultimo Login</div>
-            <div class="stat-value">${lastEntry ? formatLastLogin(`${lastEntry.date}T${String(lastEntry.hour).padStart(2, '0')}:00`) : '—'}</div>
+            <div class="stat-value">${player.status === 'active' ? 'online' : lastEntry ? formatLastLogin(`${lastEntry.date}T${String(lastEntry.hour).padStart(2, '0')}:00`) : '—'}</div>
           </div>
           <div class="stat-item">
-            <div class="stat-label">Sessioni Settimana</div>
+            <div class="stat-label">Ore settimanali</div>
             <div class="stat-value">${weekSessions}</div>
           </div>
         </div>
@@ -211,7 +211,7 @@ function buildPlayer(fivemPlayer, memberNames, pinnedNames, onlineNames) {
   const isPinned = pinnedNames.has(name.toLowerCase());
 
   return {
-    id: players.length + 1,
+    id: fivemPlayer.id,
     name,
     role: isMember ? 'member' : isPinned ? 'pinned' : 'player',
     lastLogin: '',
@@ -267,6 +267,8 @@ async function getPlayers() {
     for (const p of basePlayers) {
       players.push(buildPlayer(p, memberNames, pinnedNames, onlineNames));
     }
+
+    console.log(players);
     renderPlayers();
 
     console.log(`🎉 COMPLETATO! ${players.length} players caricati`);
@@ -347,7 +349,7 @@ async function getTotalWeekHour() {
 
       return fetch(url)
         .then(r => r.ok ? r.json() : [])
-        .then(messages => messages.forEach(m => temp.push({ name: m.name, date: dateStr, hour })))
+        .then(messages => messages.forEach(m => temp.push({ name: m.steamName, date: dateStr, hour })))
         .catch(() => { });
     });
 

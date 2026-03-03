@@ -367,6 +367,10 @@ tbody td {
     opacity: 0.55;
 }
 
+.row-inactive {
+    background-color: rgba(255, 0, 0, 0.20);
+}
+
 .row-ospite:hover {
     opacity: 0.8;
 }

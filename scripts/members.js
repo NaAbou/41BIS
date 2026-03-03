@@ -107,8 +107,9 @@ function render() {
         const i = members.indexOf(m);
         const login = getLoginStatus(m.lastLogin);
         const hrs = getHoursDisplay(m.hours);
+
         return `
-      <tr class="${m.role === 'ospite' ? 'row-ospite' : ''}">
+      <tr class="${m.isActive === false ? 'row-inactive' : m.role === 'ospite' ? 'row-ospite' : ''}">
         <td><span class="member-name">${esc(m.name)}</span></td>
         <td><span class="discord-id" onclick="copyId('${m.discordId}')" title="Clicca per copiare">${m.discordId}</span></td>
         <td><span class="role-badge ${m.role ? m.role : 'ospite'}">${(ROLE_LABELS[m.role] || m.role) ? ROLE_LABELS[m.role] || m.role : '-'}</span></td>
@@ -248,6 +249,7 @@ async function loadMembers() {
                 roles: data.roles || [],
                 wl: data.wl || 'no',
                 hours: parseFloat(data.hours) || 0,
+                isActive: data.isActive || false,
                 lastLogin: data.lastLogin || ''
             };
         });
