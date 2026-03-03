@@ -71,12 +71,67 @@ def sync_members_to_firestore(members):
     batch = db.batch()
     count = 0
 
+    current_ids = {m["discordId"] for m in members}
+
+    all_docs = collection_ref.stream()
+    for doc in all_docs:
+        if doc.id not in current_ids:
+            data = doc.to_dict()
+            # Segna solo se prima era "in server"
+            if data.get("isActive", True) is True:
+                batch.update(collection_ref.document(doc.id), {
+                    "isActive": False,
+                    "updatedAt": firestore.SERVER_TIMESTAMP,
+                })
+                count += 1
+                if count % 450 == 0:
+                    batch.commit()
+                    batch = db.batch()
+
+    # 2) Aggiorna/crea chi è nel server
     for member in members:
         doc_ref = collection_ref.document(member["discordId"])
         doc = doc_ref.get()
 
         if doc.exists:
-            # Aggiorna solo i campi "live" senza toccare wl/hours/lastLogin
+            batch.update(doc_ref, {
+                "name": member["name"],
+                "username": member["username"],
+                "roles": member["roles"],
+                "isActive": True,
+                "updatedAt": firestore.SERVER_TIMESTAMP,
+            })
+        else:
+            batch.set(doc_ref, {
+                "name": member["name"],
+                "username": member["username"],
+                "discordId": member["discordId"],
+                "roles": member["roles"],
+                "wl": "no",
+                "hours": 0,
+                "lastLogin": "",
+                "isActive": True,
+                "createdAt": firestore.SERVER_TIMESTAMP,
+                "updatedAt": firestore.SERVER_TIMESTAMP,
+            })
+
+        count += 1
+        if count % 450 == 0:
+            batch.commit()
+            batch = db.batch()
+            print(f"  ✅ Committati {count} documenti...")
+
+    batch.commit()
+    print(f"🔥 Firestore: sincronizzati {count} membri")
+    collection_ref = db.collection("members")
+    batch = db.batch()
+    count = 0
+
+    for member in members:
+        doc_ref = collection_ref.document(member["discordId"])
+        doc = doc_ref.get()
+
+        if doc.exists:
             batch.update(doc_ref, {
                 "name": member["name"],
                 "username": member["username"],
@@ -84,7 +139,6 @@ def sync_members_to_firestore(members):
                 "updatedAt": firestore.SERVER_TIMESTAMP,
             })
         else:
-            # Primo inserimento: scrivi tutto
             batch.set(doc_ref, {
                 "name": member["name"],
                 "username": member["username"],
